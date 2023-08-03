@@ -1,14 +1,14 @@
 <template>
-  <Repertoire />
+  <RepertoireComponent />
 </template>
 
 <script>
-import Repertoire from "./components/Repertoire.vue";
+import RepertoireComponent from "./components/RepertoireComponent.vue";
 
 export default {
   name: "App",
   components: {
-    Repertoire,
+    RepertoireComponent,
   },
 };
 </script>

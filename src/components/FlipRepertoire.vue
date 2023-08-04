@@ -11,7 +11,7 @@
       <div
         class="mobile-curr-content"
         v-bind:style="mobileCurrContentStyle"
-        v-html="this.html_code[this.index]"
+        v-html="this.htmlCode[this.index]"
       ></div>
       <div
         class="mobile-next-left-container"

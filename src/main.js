@@ -1,4 +1,5 @@
-import { createApp } from 'vue'
-import App from './App.vue'
+import { createApp } from "vue";
+import App from "./App.vue";
+import { IonicVue } from "@ionic/vue";
 
-createApp(App).mount('#app')
+createApp(App).use(IonicVue).mount("#app");

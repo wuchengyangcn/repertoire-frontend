@@ -136,5 +136,26 @@ export default {
       };
     },
   },
+  created() {
+    this.fetchData();
+  },
+  methods: {
+    fetchData() {
+      const domain = `http://127.0.0.1:5000/repertoire?device=${
+        this.isMobile ? "mobile" : "desktop"
+      }`;
+      fetch(domain)
+        .then((response) => response.json())
+        .then((data) => this.htmlCode.push(...data));
+    },
+  },
+  mounted() {
+    this.width = window.innerWidth;
+    this.height = window.innerHeight;
+    this.diagonal = Math.sqrt(
+      this.width * this.width + this.height * this.height
+    );
+    this.isMobile = true;
+  },
 };
 </script>

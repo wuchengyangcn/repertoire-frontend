@@ -148,6 +148,50 @@ export default {
         .then((response) => response.json())
         .then((data) => this.htmlCode.push(...data));
     },
+    touchStartHandler(event) {
+      this.nextLeftContainer = document.querySelector(
+        ".mobile-next-left-container"
+      );
+      this.nextLeftContent = document.querySelector(
+        ".mobile-next-left-content"
+      );
+      this.nextRightContainer = document.querySelector(
+        ".mobile-next-right-container"
+      );
+      this.nextRightContent = document.querySelector(
+        ".mobile-next-right-content"
+      );
+
+      let minX = this.width * 0.65;
+      let maxX = this.width * 0.95;
+      let minY = this.height * 0.65;
+      let maxY = this.height * 0.95;
+      let touchX = event.touches[0].clientX;
+      let touchY = event.touches[0].clientY;
+      if (
+        minX <= touchX &&
+        touchX <= maxX &&
+        minY <= touchY &&
+        touchY <= maxY
+      ) {
+        this.nextMove = true;
+        this.nextUpdate(this, touchX, touchY);
+      }
+    },
+    touchMoveHandler(event) {
+      if (this.nextMove) {
+        let touchX = event.touches[0].clientX;
+        let touchY = event.touches[0].clientY;
+        this.nextUpdate(this, touchX, touchY);
+      }
+    },
+    touchEndHandler(event) {
+      if (this.nextMove) {
+        let touchX = event.changedTouches[0].clientX;
+        let touchY = event.changedTouches[0].clientY;
+        this.nextUpdate(this, touchX, touchY);
+      }
+    },
   },
   mounted() {
     this.width = window.innerWidth;

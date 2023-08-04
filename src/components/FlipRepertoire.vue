@@ -48,5 +48,93 @@ export default {
       nextRightContent: "",
     };
   },
+  computed: {
+    mobileRepertoireStyle() {
+      return {
+        position: "absolute",
+        width: this.width + "px",
+        height: this.height + "px",
+        overflow: "hidden",
+        userSelect: "none",
+      };
+    },
+    mobileCurrContentStyle() {
+      return {
+        position: "absolute",
+        width: this.width + "px",
+        height: this.height + "px",
+        overflow: "hidden",
+        userSelect: "none",
+        zIndex: 1,
+      };
+    },
+    mobileNextLeftContainerStyle() {
+      return {
+        position: "absolute",
+        width: 0.9 * this.width + "px",
+        height: 0.9 * this.height + "px",
+        overflow: "hidden",
+        userSelect: "none",
+        top: "auto",
+        bottom: this.height * 0.05 + "px",
+        left: "auto",
+        right: this.width * 0.05 + "px",
+        transform: `translateX(${this.nextContainer}px) rotate(${this.nextDegree}deg)`,
+        transformOrigin: "100% 100%",
+        zIndex: this.nextMove ? 2 : 0,
+      };
+    },
+    mobileNextLeftContentStyle() {
+      return {
+        position: "absolute",
+        width: this.width + "px",
+        height: this.height + "px",
+        overflow: "hidden",
+        userSelect: "none",
+        top: "auto",
+        bottom: "0%",
+        left: "100%",
+        right: "auto",
+        transform: `translateX(${this.nextX}px) translateY(${this.nextY}px) rotate(${this.nextDegree}deg)`,
+        transformOrigin: "0% 100%",
+        zIndex: this.nextMove ? 3 : 0,
+        backgroundColor: "white",
+      };
+    },
+    mobileNextRightContainerStyle() {
+      return {
+        position: "absolute",
+        width: 0.9 * this.diagonal + "px",
+        height: 0.9 * this.diagonal + "px",
+        overflow: "hidden",
+        userSelect: "none",
+        top: "auto",
+        bottom: this.height * 0.05 + "px",
+        left: this.width * 0.95 + "px",
+        right: "auto",
+        transform: `translateX(${this.nextContainer}px) rotate(${this.nextDegree}deg)`,
+        transformOrigin: "0% 100%",
+        zIndex: this.nextMove ? 2 : 0,
+      };
+    },
+    mobileNextRightContentStyle() {
+      return {
+        position: "absolute",
+        width: this.width + "px",
+        height: this.height + "px",
+        overflow: "hidden",
+        userSelect: "none",
+        top: "auto",
+        bottom: "0%",
+        left: "auto",
+        right: "100%",
+        transform: `translateX(${0 - this.nextX}px) translateY(${
+          this.nextY
+        }px) rotate(${0 - this.nextDegree}deg)`,
+        transformOrigin: "100% 100%",
+        zIndex: this.nextMove ? 3 : 0,
+      };
+    },
+  },
 };
 </script>

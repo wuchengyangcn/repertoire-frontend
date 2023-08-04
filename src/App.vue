@@ -1,14 +1,15 @@
 <template>
-  <RepertoireComponent />
+  <Repertoire />
 </template>
 
 <script>
-import RepertoireComponent from "./components/RepertoireComponent.vue";
+// import Repertoire from "./components/ClickRepertoire.vue";
+import Repertoire from "./components/FlipRepertoire.vue";
 
 export default {
   name: "App",
   components: {
-    RepertoireComponent,
+    Repertoire,
   },
 };
 </script>

@@ -1,6 +1,6 @@
 <template>
   <div class="repertoire" @touchstart="touchStartHandler($event)">
-    <div class="page" v-html="this.html_code[this.index]"></div>
+    <div v-html="this.html_code[this.index]"></div>
   </div>
 </template>
 
@@ -8,7 +8,7 @@
 export default {
   data() {
     return {
-      name: "RepertoireComponnet",
+      name: "Repertoire",
       device: "mobile",
       html_code: [],
       index: 0,

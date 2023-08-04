@@ -148,6 +148,19 @@ export default {
         .then((response) => response.json())
         .then((data) => this.htmlCode.push(...data));
     },
+    nextUpdate(that, x0, y0) {
+      let x1 = that.width * 0.95;
+      let y1 = that.height * 0.95;
+      if (x0 === x1) x0 = x1 - 1;
+      if (y0 === y1) y0 = y1 - 1;
+      let y = ((x0 - x1) / (y1 - y0)) * ((x1 - x0) / 2) + (y0 + y1) / 2;
+      let x = Math.sqrt((x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1)) / 2;
+      let alpha = Math.asin(x / (y1 - y));
+      that.nextX = 0 - x;
+      that.nextY = 0 - x * Math.tan(alpha);
+      that.nextContainer = 0 - (y1 - y) * Math.tan(alpha);
+      that.nextDegree = (alpha / Math.PI) * 180;
+    },
     touchStartHandler(event) {
       this.nextLeftContainer = document.querySelector(
         ".mobile-next-left-container"

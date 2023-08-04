@@ -25,3 +25,28 @@
     </div>
   </div>
 </template>
+
+<script>
+export default {
+  data() {
+    return {
+      name: "Repertoire",
+      isMobile: true,
+      htmlCode: [],
+      index: 0,
+      width: 0,
+      height: 0,
+      diagonal: 0,
+      nextMove: false,
+      nextContainer: 0,
+      nextDegree: 0,
+      nextX: 0,
+      nextY: 0,
+      nextLeftContainer: "",
+      nextRightContainer: "",
+      nextLeftContent: "",
+      nextRightContent: "",
+    };
+  },
+};
+</script>

@@ -22,6 +22,16 @@
           v-bind:style="mobileNextLeftContentStyle"
         ></div>
       </div>
+      <div
+        class="mobile-next-right-container"
+        v-bind:style="mobileNextRightContainerStyle"
+      >
+        <div
+          class="mobile-next-right-content"
+          v-bind:style="mobileNextRightContentStyle"
+          v-html="this.htmlCode[(this.index + 1) % this.htmlCode.length]"
+        ></div>
+      </div>
     </div>
   </div>
 </template>
@@ -61,10 +71,12 @@ export default {
     mobileCurrContentStyle() {
       return {
         position: "absolute",
-        width: this.width + "px",
-        height: this.height + "px",
+        width: 0.9 * this.width + "px",
+        height: 0.9 * this.height + "px",
+        margin: `${0.05 * this.height}px ${0.05 * this.width}px`,
         overflow: "hidden",
         userSelect: "none",
+        backgroundSize: "cover",
         zIndex: 1,
       };
     },
@@ -87,8 +99,8 @@ export default {
     mobileNextLeftContentStyle() {
       return {
         position: "absolute",
-        width: this.width + "px",
-        height: this.height + "px",
+        width: 0.9 * this.width + "px",
+        height: 0.9 * this.height + "px",
         overflow: "hidden",
         userSelect: "none",
         top: "auto",
@@ -98,6 +110,7 @@ export default {
         transform: `translateX(${this.nextX}px) translateY(${this.nextY}px) rotate(${this.nextDegree}deg)`,
         transformOrigin: "0% 100%",
         zIndex: this.nextMove ? 3 : 0,
+        backgroundSize: "cover",
         backgroundColor: "white",
       };
     },
@@ -120,8 +133,8 @@ export default {
     mobileNextRightContentStyle() {
       return {
         position: "absolute",
-        width: this.width + "px",
-        height: this.height + "px",
+        width: 0.9 * this.width + "px",
+        height: 0.9 * this.height + "px",
         overflow: "hidden",
         userSelect: "none",
         top: "auto",
@@ -133,6 +146,7 @@ export default {
         }px) rotate(${0 - this.nextDegree}deg)`,
         transformOrigin: "100% 100%",
         zIndex: this.nextMove ? 3 : 0,
+        backgroundSize: "cover",
       };
     },
   },
@@ -203,6 +217,8 @@ export default {
         let touchX = event.changedTouches[0].clientX;
         let touchY = event.changedTouches[0].clientY;
         this.nextUpdate(this, touchX, touchY);
+        this.index = (this.index + 1) % this.htmlCode.length;
+        this.nextMove = false;
       }
     },
   },

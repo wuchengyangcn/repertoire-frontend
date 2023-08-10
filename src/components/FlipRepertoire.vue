@@ -2,42 +2,31 @@
   <div
     id="curling"
     class="wrapper"
+    @mousedown="mouseDownHandler($event)"
     @mousemove="moveOutSide($event)"
+    @mouseup="mouseUpHandler()"
+    @touchstart="touchStartHandler($event)"
     @touchmove="touchMoveHandler($event)"
     @touchend="touchEndHandler()"
   >
-    <div
-      class="corner"
-      @mousedown="mouseDownHandler($event)"
-      @touchstart="touchStartHandler($event)"
-    ></div>
-    <div v-if="!isMobile" v-html="htmlCode[ind]" class="page leftpage"></div>
+    <div v-if="!isMobile" v-html="pages[ind]" class="page leftpage"></div>
     <div
       class="page rightpage"
-      v-html="htmlCode[isMobile ? ind : (ind + 1) % htmlCode.length]"
+      v-html="pages[isMobile ? ind : (ind + 1) % pages.length]"
       :style="rightPageStl"
     ></div>
-    <div
-      class="turn-wrapper"
-      :style="turnWrapperStl"
-      @mousedown="mouseDownHandler($event)"
-      @mouseup="mouseUpHandler($)"
-      @mousemove="mouseMoveHandler($event)"
-      @touchstart="touchStartHandler($event)"
-      @touchmove="touchMoveHandler($event)"
-      @touchend="touchEndHandler($)"
-    >
+    <div class="turn-wrapper" :style="turnWrapperStl">
       <div
         class="turn-page"
-        v-html="isMobile ? '' : htmlCode[(ind + 2) % htmlCode.length]"
+        v-html="isMobile ? '' : pages[(ind + 2) % pages.length]"
         :style="turnPageStl"
       ></div>
     </div>
     <div class="turn-wrapper2" :style="turnWrapper2Stl">
       <div
-        class="turn-page2"
-        v-html="htmlCode[(isMobile ? ind + 1 : ind + 3) % htmlCode.length]"
-        :style="turnPage2Stl"
+        class="turn-nextContentRight"
+        v-html="pages[(isMobile ? ind + 1 : ind + 3) % pages.length]"
+        :style="turnnextContentRightStl"
       ></div>
     </div>
   </div>
@@ -48,33 +37,19 @@ export default {
   data() {
     return {
       name: "Repertoire",
-      nameList: [
-        "Cat",
-        "American Shorthair",
-        "British Shorthair",
-        "Chartreux",
-        "Ragdoll",
-        "Siamese cat",
-        "Persian cat",
-        "Russian Blue",
-      ],
-      urlPrefix: "../../static/",
-      urlSuffix: " - Wikipedia.html",
-      htmlCode: [],
-      screenWidth: window.innerWidth,
-      screenHeight: window.innerHeight,
-      ready: true,
-      rightdeg: 0,
-      moveEventFlag: false,
-      rightOrigin: 0,
-      transX: 0,
-      transY: 0,
-      wrapX: 0,
-      page1: "",
-      page2: "",
-      wrap1: "",
-      wrap2: "",
-      corner: "",
+      pages: [],
+      width: 0,
+      height: 0,
+      nextDegree: 0,
+      nextMove: false,
+      nextX: 0,
+      nextY: 0,
+      nextContainer: 0,
+      nextContentLeft: "",
+      nextContentRight: "",
+      nextContainerLeft: "",
+      nextContainerRight: "",
+      busy: false,
       ind: 0,
       isMobile: navigator.userAgent.match(
         /(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i
@@ -88,40 +63,48 @@ export default {
       };
     },
     turnWrapperStl: function () {
-      var w = this.isMobile ? this.screenWidth * 0.9 : this.screenWidth * 0.45;
-      var h = this.screenHeight * 0.9;
+      var w = this.isMobile ? this.width * 0.9 : this.width * 0.45;
+      var h = this.height * 0.9;
       var boxL = Math.sqrt(w * w + h * h);
       return {
         width: boxL + "px",
         height: boxL + "px",
         top: "auto",
-        bottom: this.screenHeight * 0.05 + "px",
-        right: this.screenWidth * 0.05 + "px",
+        bottom: this.height * 0.05 + "px",
+        right: this.width * 0.05 + "px",
         left: "auto",
         transform:
-          "translateX(" + this.wrapX + "px) rotate(" + this.rightdeg + "deg)",
+          "translateX(" +
+          this.nextContainer +
+          "px) rotate(" +
+          this.nextDegree +
+          "deg)",
         transformOrigin: "100% 100%",
       };
     },
     turnWrapper2Stl: function () {
-      var w = this.isMobile ? this.screenWidth * 0.9 : this.screenWidth * 0.45;
-      var h = this.screenHeight * 0.9;
+      var w = this.isMobile ? this.width * 0.9 : this.width * 0.45;
+      var h = this.height * 0.9;
       var boxL = Math.sqrt(w * w + h * h);
       return {
         width: boxL + "px",
         height: boxL + "px",
         top: "auto",
-        bottom: this.screenHeight * 0.05 + "px",
-        left: this.screenWidth * 0.95 + "px",
+        bottom: this.height * 0.05 + "px",
+        left: this.width * 0.95 + "px",
         right: "auto",
         transform:
-          "translateX(" + this.wrapX + "px) rotate(" + this.rightdeg + "deg)",
+          "translateX(" +
+          this.nextContainer +
+          "px) rotate(" +
+          this.nextDegree +
+          "deg)",
         transformOrigin: "0% 100%",
       };
     },
     turnPageStl: function () {
-      var w = this.isMobile ? this.screenWidth * 0.9 : this.screenWidth * 0.45;
-      var h = this.screenHeight * 0.9;
+      var w = this.isMobile ? this.width * 0.9 : this.width * 0.45;
+      var h = this.height * 0.9;
       // var boxL = Math.sqrt(w * w + h * h)
       return {
         width: w + "px",
@@ -132,23 +115,23 @@ export default {
         right: "auto",
         transform:
           "translate(" +
-          this.transX +
+          this.nextX +
           "px, " +
-          this.transY +
+          this.nextY +
           "px) rotate(" +
-          this.rightdeg +
+          this.nextDegree +
           "deg)",
         transformOrigin: "0% 100%",
         backgroundColor: this.isMobile ? "white" : "",
         // backgroundColor: 'white'
       };
     },
-    turnPage2Stl: function () {
-      var w = this.isMobile ? this.screenWidth * 0.9 : this.screenWidth * 0.45;
-      var h = this.screenHeight * 0.9;
+    turnnextContentRightStl: function () {
+      var w = this.isMobile ? this.width * 0.9 : this.width * 0.45;
+      var h = this.height * 0.9;
       // var boxL = Math.sqrt(w * w + h * h)
-      var deg = 0 - this.rightdeg;
-      var dx = 0 - this.transX;
+      var deg = 0 - this.nextDegree;
+      var dx = 0 - this.nextX;
       return {
         width: w + "px",
         height: h + "px",
@@ -160,7 +143,7 @@ export default {
           "translate(" +
           dx +
           "px, " +
-          this.transY +
+          this.nextY +
           "px) rotate(" +
           deg +
           "deg)",
@@ -178,12 +161,12 @@ export default {
       }`;
       fetch(domain)
         .then((response) => response.json())
-        .then((data) => this.htmlCode.push(...data));
+        .then((data) => this.pages.push(...data));
     },
     computeDeg(that, x0, y0) {
       // TODO: what if x0 = x1 or y0 = y1
-      var x1 = that.screenWidth * 0.95;
-      var y1 = that.screenHeight * 0.95;
+      var x1 = that.width * 0.95;
+      var y1 = that.height * 0.95;
       if (x0 === x1) x0 = x1 - 1;
       if (y0 === y1) y0 = y1 - 1;
       var y = ((x0 - x1) / (y1 - y0)) * ((x1 - x0) / 2) + (y0 + y1) / 2;
@@ -191,53 +174,53 @@ export default {
       var alpha = Math.asin(x / (y1 - y));
       // var x2 = x1 - (y1 - y) * Math.sin(alpha)
       // var y2 = y + (y1 - y) * Math.cos(alpha)
-      that.transX = 0 - x;
-      that.transY = 0 - x * Math.tan(alpha);
-      that.wrapX = 0 - (y1 - y) * Math.tan(alpha);
-      that.rightdeg = (alpha / Math.PI) * 180;
+      that.nextX = 0 - x;
+      that.nextY = 0 - x * Math.tan(alpha);
+      that.nextContainer = 0 - (y1 - y) * Math.tan(alpha);
+      that.nextDegree = (alpha / Math.PI) * 180;
       // console.log((x2 - x1) * (x2 - x1) + (y2 - y) * (y2 - y), (y1 - y) * (y1 - y), y2, (x0 - x1) / (y1 - y0) * x2 + (y0 + y1) / 2 - (x0 * x0 - x1 * x1) / (2 * (y1 - y0)))
     },
     turningAnimationPhase1(that) {
-      if (that.moveEventFlag === true) {
+      if (that.nextMove === true) {
         // console.log('x: ' + e.x + ' y: ' + e.y)
-        var alpha = (that.rightdeg * Math.PI) / 180;
-        var newtransX1 =
-          0 - that.screenWidth * (that.isMobile ? 0.9 : 0.45) * Math.cos(alpha);
-        var newtransY1 =
-          0 - that.screenWidth * (that.isMobile ? 0.9 : 0.45) * Math.sin(alpha);
-        var old2x = 0 - that.transX;
-        var old2deg = 0 - that.rightdeg;
-        var new2x1 = 0 - newtransX1;
-        var newWrapX = 0 - that.screenWidth * (that.isMobile ? 0.9 : 0.45);
-        const page1Move = [
+        var alpha = (that.nextDegree * Math.PI) / 180;
+        var newnextX1 =
+          0 - that.width * (that.isMobile ? 0.9 : 0.45) * Math.cos(alpha);
+        var newnextY1 =
+          0 - that.width * (that.isMobile ? 0.9 : 0.45) * Math.sin(alpha);
+        var old2x = 0 - that.nextX;
+        var old2deg = 0 - that.nextDegree;
+        var new2x1 = 0 - newnextX1;
+        var newnextContainer = 0 - that.width * (that.isMobile ? 0.9 : 0.45);
+        const nextContentLeftMove = [
           {
             transform:
               "translate(" +
-              that.transX +
+              that.nextX +
               "px, " +
-              that.transY +
+              that.nextY +
               "px) rotate(" +
-              that.rightdeg +
+              that.nextDegree +
               "deg)",
           },
           {
             transform:
               "translate(" +
-              newtransX1 +
+              newnextX1 +
               "px, " +
-              newtransY1 +
+              newnextY1 +
               "px) rotate(" +
-              that.rightdeg +
+              that.nextDegree +
               "deg)",
           },
         ];
-        const page2Move = [
+        const nextContentRightMove = [
           {
             transform:
               "translate(" +
               old2x +
               "px, " +
-              that.transY +
+              that.nextY +
               "px) rotate(" +
               old2deg +
               "deg)",
@@ -247,85 +230,93 @@ export default {
               "translate(" +
               new2x1 +
               "px, " +
-              newtransY1 +
+              newnextY1 +
               "px) rotate(" +
               old2deg +
               "deg)",
           },
         ];
-        const wrap1Move = [
+        const nextContainerLeftMove = [
           {
             transform:
               "translateX(" +
-              that.wrapX +
+              that.nextContainer +
               "px) rotate(" +
-              that.rightdeg +
+              that.nextDegree +
               "deg)",
           },
           {
             transform:
-              "translateX(" + newWrapX + "px) rotate(" + that.rightdeg + "deg)",
+              "translateX(" +
+              newnextContainer +
+              "px) rotate(" +
+              that.nextDegree +
+              "deg)",
           },
         ];
-        const wrap2Move = [
+        const nextContainerRightMove = [
           {
             transform:
               "translateX(" +
-              that.wrapX +
+              that.nextContainer +
               "px) rotate(" +
-              that.rightdeg +
+              that.nextDegree +
               "deg)",
           },
           {
             transform:
-              "translateX(" + newWrapX + "px) rotate(" + that.rightdeg + "deg)",
+              "translateX(" +
+              newnextContainer +
+              "px) rotate(" +
+              that.nextDegree +
+              "deg)",
           },
         ];
         const duration1 = { duration: 1000 };
-        that.page1.animate(page1Move, duration1);
-        that.page2.animate(page2Move, duration1);
-        that.wrap1.animate(wrap1Move, duration1);
-        that.wrap2.animate(wrap2Move, duration1);
+        that.nextContentLeft.animate(nextContentLeftMove, duration1);
+        that.nextContentRight.animate(nextContentRightMove, duration1);
+        that.nextContainerLeft.animate(nextContainerLeftMove, duration1);
+        that.nextContainerRight.animate(nextContainerRightMove, duration1);
       }
     },
     turningAnimationPhase2(that) {
-      if (that.moveEventFlag === true) {
-        that.moveEventFlag = false;
-        var old2deg = 0 - that.rightdeg;
-        var newWrapX = 0 - that.screenWidth * (that.isMobile ? 0.9 : 0.45);
-        var newtransX2 = 0 - that.screenWidth * (that.isMobile ? 0.9 : 0.45);
-        var newtransY2 = 0;
-        var new2x2 = 0 - newtransX2;
-        console.log("rightdegree: " + that.rightdeg);
-        const page1Rotate = [
+      if (that.nextMove === true) {
+        that.nextMove = false;
+        var old2deg = 0 - that.nextDegree;
+        var newnextContainer = 0 - that.width * (that.isMobile ? 0.9 : 0.45);
+        var newnextX2 = 0 - that.width * (that.isMobile ? 0.9 : 0.45);
+        var newnextY2 = 0;
+        var new2x2 = 0 - newnextX2;
+        console.log("nextDegreeree: " + that.nextDegree);
+        const nextContentLeftRotate = [
           {
             transform:
               "translate(" +
-              newtransX2 +
+              newnextX2 +
               "px, " +
-              newtransY2 +
+              newnextY2 +
               "px) rotate(" +
-              that.rightdeg +
+              that.nextDegree +
               "deg)",
             transformOrigin: "100% 100%",
           },
           {
             transform:
               "translate(" +
-              newtransX2 +
+              newnextX2 +
               "px, " +
-              newtransY2 +
+              newnextY2 +
               "px) rotate(0deg)",
             transformOrigin: "100% 100%",
           },
         ];
-        const page2Rotate = [
+        const nextContentRightRotate = [
           {
             transform:
               "translate(" +
               new2x2 +
               "px, " +
-              newtransY2 +
+              newnextY2 +
               "px) rotate(" +
               old2deg +
               "deg)",
@@ -333,59 +324,69 @@ export default {
           },
           {
             transform:
-              "translate(" + new2x2 + "px, " + newtransY2 + "px) rotate(0deg)",
+              "translate(" + new2x2 + "px, " + newnextY2 + "px) rotate(0deg)",
             transformOrigin: "0% 100%",
           },
         ];
-        const wrap1Rotate = [
+        const nextContainerLeftRotate = [
           {
             transform:
-              "translateX(" + newWrapX + "px) rotate(" + that.rightdeg + "deg)",
+              "translateX(" +
+              newnextContainer +
+              "px) rotate(" +
+              that.nextDegree +
+              "deg)",
           },
-          { transform: "translateX(" + newWrapX + "px) rotate(0deg)" },
+          { transform: "translateX(" + newnextContainer + "px) rotate(0deg)" },
         ];
-        const wrap2Rotate = [
+        const nextContainerRightRotate = [
           {
             transform:
-              "translateX(" + newWrapX + "px) rotate(" + that.rightdeg + "deg)",
+              "translateX(" +
+              newnextContainer +
+              "px) rotate(" +
+              that.nextDegree +
+              "deg)",
           },
-          { transform: "translateX(" + newWrapX + "px) rotate(0deg)" },
+          { transform: "translateX(" + newnextContainer + "px) rotate(0deg)" },
         ];
         var duration2 = { duration: 1000, delay: 1000 };
-        that.page1.animate(page1Rotate, duration2);
-        console.log(new2x2, newtransY2, old2deg);
-        var myanimation = that.page2.animate(page2Rotate, duration2);
-        that.wrap1.animate(wrap1Rotate, duration2);
-        that.wrap2.animate(wrap2Rotate, duration2);
+        that.nextContentLeft.animate(nextContentLeftRotate, duration2);
+        console.log(new2x2, newnextY2, old2deg);
+        var myanimation = that.nextContentRight.animate(
+          nextContentRightRotate,
+          duration2
+        );
+        that.nextContainerLeft.animate(nextContainerLeftRotate, duration2);
+        that.nextContainerRight.animate(nextContainerRightRotate, duration2);
         myanimation.onfinish = () => {
-          that.transX = 0;
-          that.transY = 0;
-          that.wrapX = 0;
-          that.rightdeg = 0;
-          that.ind =
-            (that.ind + (that.isMobile ? 1 : 2)) % that.htmlCode.length;
-          that.wrap1.style.zIndex = 0;
-          that.corner.style.zIndex = 4;
+          that.nextX = 0;
+          that.nextY = 0;
+          that.nextContainer = 0;
+          that.nextDegree = 0;
+          that.ind = (that.ind + (that.isMobile ? 1 : 2)) % that.pages.length;
+          that.nextContainerLeft.style.zIndex = 0;
+          that.busy = false;
           console.log(that.ind);
         };
       }
     },
     outofRange(that, e) {
-      var x1 = that.screenWidth * 0.95;
-      var y1 = that.screenHeight * 0.95;
+      var x1 = that.width * 0.95;
+      var y1 = that.height * 0.95;
       var x0, y0, x;
       if (that.isMobile) {
         x0 = e.touches[0].clientX;
         y0 = e.touches[0].clientY;
         x = ((y1 - y0) / (x0 - x1)) * ((y1 - y0) / 2) + (x0 + x1) / 2;
-        if (x <= that.screenWidth * 0.1) {
+        if (x <= that.width * 0.1) {
           return true;
         }
       } else {
         x0 = e.x;
         y0 = e.y;
         x = ((y1 - y0) / (x0 - x1)) * ((y1 - y0) / 2) + (x0 + x1) / 2;
-        if (x <= that.screenWidth * 0.5) {
+        if (x <= that.width * 0.5) {
           return true;
         }
       }
@@ -393,15 +394,15 @@ export default {
     },
     moveOutSide(e) {
       console.log("move outside");
-      if (this.moveEventFlag) {
+      if (this.nextMove) {
         console.log("move outside");
         var x = this.isMobile ? e.touches[0].clientX : e.x;
         var y = this.isMobile ? e.touches[0].clientY : e.y;
         if (
-          x >= this.screenWidth * 0.95 ||
-          x <= this.screenWidth * 0.05 ||
-          y >= this.screenHeight * 0.95 ||
-          y <= this.screenHeight * 0.05
+          x >= this.width * 0.95 ||
+          x <= this.width * 0.05 ||
+          y >= this.height * 0.95 ||
+          y <= this.height * 0.05
         ) {
           this.$options.methods.turningAnimationPhase1(this);
           this.$options.methods.turningAnimationPhase2(this);
@@ -411,35 +412,26 @@ export default {
     mouseDownHandler(e) {
       if (this.isMobile) return;
       console.log("here mouse down");
-      if (!this.page1) {
-        this.page1 = document.querySelector(".turn-page");
-        this.page2 = document.querySelector(".turn-page2");
-        this.wrap1 = document.querySelector(".turn-wrapper");
-        this.wrap2 = document.querySelector(".turn-wrapper2");
-        this.corner = document.querySelector(".corner");
+      if (!this.nextContentLeft) {
+        this.nextContentLeft = document.querySelector(".turn-page");
+        this.nextContentRight = document.querySelector(
+          ".turn-nextContentRight"
+        );
+        this.nextContainerLeft = document.querySelector(".turn-wrapper");
+        this.nextContainerRight = document.querySelector(".turn-wrapper2");
       }
-      this.wrap1.style.zIndex = 2;
-      this.corner.style.zIndex = 0;
-      var brX = this.screenWidth * 0.95;
-      var brY = this.screenHeight * 0.95;
+      this.nextContainerLeft.style.zIndex = 2;
+      var brX = this.width * 0.95;
+      var brY = this.height * 0.95;
       console.log(e.x, e.y);
       if (
         e.x <= brX &&
-        e.x >= brX - this.screenWidth * 0.3 &&
+        e.x >= brX - this.width * 0.3 &&
         e.y <= brY &&
-        e.y >= brY - this.screenHeight * 0.3
+        e.y >= brY - this.height * 0.3
       ) {
-        console.log(
-          this.isMobile ? "touch start in corner" : "mousedown in corner"
-        );
-        this.moveEventFlag = true;
+        this.nextMove = true;
         this.$options.methods.computeDeg(this, e.x, e.y);
-      } else {
-        console.log(
-          this.isMobile
-            ? "touch start not in corner"
-            : "mousedown not in corner"
-        );
       }
     },
     mouseUpHandler() {
@@ -449,7 +441,7 @@ export default {
     },
     mouseMoveHandler(e) {
       if (this.isMobile) return;
-      if (this.moveEventFlag) {
+      if (this.nextMove) {
         if (this.$options.methods.outofRange(this, e)) {
           this.$options.methods.turningAnimationPhase2(this);
           return;
@@ -458,45 +450,38 @@ export default {
       }
     },
     touchStartHandler(e) {
+      if (this.busy) return;
       console.log("touch start at", e.touches[0].clientX, e.touches[0].clientY);
       if (!this.isMobile) return;
-      if (!this.page1) {
-        this.page1 = document.querySelector(".turn-page");
-        this.page2 = document.querySelector(".turn-page2");
-        this.wrap1 = document.querySelector(".turn-wrapper");
-        this.wrap2 = document.querySelector(".turn-wrapper2");
-        this.corner = document.querySelector(".corner");
+      if (!this.nextContentLeft) {
+        this.nextContentLeft = document.querySelector(".turn-page");
+        this.nextContentRight = document.querySelector(
+          ".turn-nextContentRight"
+        );
+        this.nextContainerLeft = document.querySelector(".turn-wrapper");
+        this.nextContainerRight = document.querySelector(".turn-wrapper2");
       }
-      this.wrap1.style.zIndex = 2;
-      this.corner.style.zIndex = 0;
-      var brX = this.screenWidth * 0.95;
-      var brY = this.screenHeight * 0.95;
+      this.nextContainerLeft.style.zIndex = 2;
+      var brX = this.width * 0.95;
+      var brY = this.height * 0.95;
       var x = e.touches[0].clientX;
       var y = e.touches[0].clientY;
       console.log(e.x, e.y);
       if (
         x <= brX &&
-        x >= brX - this.screenWidth * 0.3 &&
+        x >= brX - this.width * 0.3 &&
         y <= brY &&
-        y >= brY - this.screenHeight * 0.3
+        y >= brY - this.height * 0.3
       ) {
-        console.log(
-          this.isMobile ? "touch start in corner" : "mousedown in corner"
-        );
-        this.moveEventFlag = true;
+        this.nextMove = true;
         this.$options.methods.computeDeg(this, x, y);
-      } else {
-        console.log(
-          this.isMobile
-            ? "touch start not in corner"
-            : "mousedown not in corner"
-        );
       }
     },
     touchMoveHandler(e) {
+      if (this.busy) return;
       console.log("touch move");
       if (!this.isMobile) return;
-      if (this.moveEventFlag) {
+      if (this.nextMove) {
         if (this.$options.methods.outofRange(this, e)) {
           this.$options.methods.turningAnimationPhase2(this);
           return;
@@ -509,44 +494,20 @@ export default {
       }
     },
     touchEndHandler() {
+      if (this.busy) return;
       console.log("touch end");
       if (!this.isMobile) return;
+      this.busy = true;
       this.$options.methods.turningAnimationPhase1(this);
       this.$options.methods.turningAnimationPhase2(this);
     },
   },
   mounted() {
-    const that = this;
-    window.onresize = () => {
-      return (() => {
-        window.screenWidth = window.innerWidth;
-        window.screenHeight = window.innerHeight;
-        that.screenWidth = window.screenWidth;
-        that.screenHeight = window.screenHeight;
-        that.rightX = window.screenWidth * 0.95;
-        that.resizeFlag = that.resizeFlag < 1000000 ? that.resizeFlag + 1 : 0;
-      })();
-    };
-    if (this.isMobile) {
-      window.addEventListener("touchstart", {});
-    }
-  },
-  watch: {
-    resizeFlag() {
-      if (!this.timer) {
-        this.timer = true;
-        let that = this;
-        setTimeout(function () {
-          console.log(
-            "screenWidth: " +
-              that.screenWidth +
-              "  screenHeight: " +
-              that.screenHeight
-          );
-          that.timer = false;
-        }, 400);
-      }
-    },
+    window.width = window.innerWidth;
+    window.height = window.innerHeight;
+    this.width = window.width;
+    this.height = window.height;
+    this.rightX = this.width * 0.95;
   },
 };
 </script>
@@ -602,21 +563,8 @@ export default {
   overflow: hidden;
 }
 
-.turn-page2 {
+.turn-nextContentRight {
   position: absolute;
-  overflow: hidden;
-}
-
-.corner {
-  position: absolute;
-  width: 30%;
-  height: 30%;
-  right: 5%;
-  left: auto;
-  bottom: 5%;
-  top: auto;
-  z-index: 4;
-  border-style: none;
   overflow: hidden;
 }
 </style>

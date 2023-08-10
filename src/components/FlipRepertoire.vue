@@ -1,33 +1,37 @@
 <template>
-  <div
-    id="curling"
-    class="wrapper"
-    @mousedown="mouseDownHandler($event)"
-    @mousemove="moveOutSide($event)"
-    @mouseup="mouseUpHandler()"
-    @touchstart="touchStartHandler($event)"
-    @touchmove="touchMoveHandler($event)"
-    @touchend="touchEndHandler()"
-  >
-    <div v-if="!isMobile" v-html="pages[ind]" class="page leftpage"></div>
+  <div class="repertoire">
     <div
-      class="page rightpage"
-      v-html="pages[isMobile ? ind : (ind + 1) % pages.length]"
-      :style="rightPageStl"
-    ></div>
-    <div class="turn-wrapper" :style="turnWrapperStl">
+      v-if="isMobile"
+      class="mobile-repertoire"
+      v-bind:style="mobileRepertoireStyle"
+      @touchstart="mobileStart($event)"
+      @touchmove="mobileMove($event)"
+      @touchend="mobileEnd()"
+    >
       <div
-        class="turn-page"
-        v-html="isMobile ? '' : pages[(ind + 2) % pages.length]"
-        :style="turnPageStl"
+        class="mobile-curr-content"
+        v-bind:style="mobileCurrContentStyle"
+        v-html="pages[page]"
       ></div>
-    </div>
-    <div class="turn-wrapper2" :style="turnWrapper2Stl">
       <div
-        class="turn-nextContentRight"
-        v-html="pages[(isMobile ? ind + 1 : ind + 3) % pages.length]"
-        :style="turnnextContentRightStl"
-      ></div>
+        class="mobileNextContainerLeft"
+        v-bind:style="mobileNextContainerLeftStyle"
+      >
+        <div
+          class="mobileNextContentLeft"
+          v-bind:style="mobileNextContentLeftStyle"
+        ></div>
+      </div>
+      <div
+        class="mobile-next-container-right"
+        v-bind:style="mobileNextContainerRightStyle"
+      >
+        <div
+          class="mobile-next-content-right"
+          v-bind:style="mobileNextContentRightStyle"
+          v-html="pages[(page + 1) % pages.length]"
+        ></div>
+      </div>
     </div>
   </div>
 </template>
@@ -38,35 +42,56 @@ export default {
     return {
       name: "Repertoire",
       pages: [],
-      width: 0,
+      page: 0,
       height: 0,
-      nextDegree: 0,
-      nextMove: false,
+      width: 0,
+      diagonal: 0,
+      isMobile: true,
+      busy: false,
       nextX: 0,
       nextY: 0,
+      nextDegree: 0,
       nextContainer: 0,
+      nextMove: false,
       nextContentLeft: "",
       nextContentRight: "",
       nextContainerLeft: "",
       nextContainerRight: "",
-      busy: false,
-      ind: 0,
-      isMobile: navigator.userAgent.match(
-        /(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i
-      ),
     };
   },
   computed: {
-    rightPageStl: function () {
+    mobileRepertoireStyle() {
       return {
-        width: this.isMobile ? "90%" : "45%",
+        position: "absolute",
+        height: this.height + "px",
+        width: this.width + "px",
+        top: 0,
+        left: 0,
+        overflow: "hidden",
+        userSelect: "none",
+        zIndex: 0,
       };
     },
-    turnWrapperStl: function () {
+    mobileCurrContentStyle() {
+      return {
+        position: "absolute",
+        height: 0.9 * this.height + "px",
+        width: 0.9 * this.width + "px",
+        top: 0.05 * this.height + "px",
+        bottom: 0.05 * this.height + "px",
+        left: 0.05 * this.width + "px",
+        right: 0.05 * this.width + "px",
+        overflow: "hidden",
+        userSelect: "none",
+        zIndex: 1,
+      };
+    },
+    mobileNextContainerLeftStyle() {
       var w = this.isMobile ? this.width * 0.9 : this.width * 0.45;
       var h = this.height * 0.9;
       var boxL = Math.sqrt(w * w + h * h);
       return {
+        position: "absolute",
         width: boxL + "px",
         height: boxL + "px",
         top: "auto",
@@ -80,13 +105,17 @@ export default {
           this.nextDegree +
           "deg)",
         transformOrigin: "100% 100%",
+        overflow: "hidden",
+        userSelect: "none",
+        zIndex: this.nextMove ? 2 : 0,
       };
     },
-    turnWrapper2Stl: function () {
+    mobileNextContainerRightStyle() {
       var w = this.isMobile ? this.width * 0.9 : this.width * 0.45;
       var h = this.height * 0.9;
       var boxL = Math.sqrt(w * w + h * h);
       return {
+        position: "absolute",
         width: boxL + "px",
         height: boxL + "px",
         top: "auto",
@@ -100,13 +129,17 @@ export default {
           this.nextDegree +
           "deg)",
         transformOrigin: "0% 100%",
+        overflow: "hidden",
+        userSelect: "none",
+        zIndex: this.nextMove ? 2 : 0,
       };
     },
-    turnPageStl: function () {
+    mobileNextContentLeftStyle() {
       var w = this.isMobile ? this.width * 0.9 : this.width * 0.45;
       var h = this.height * 0.9;
       // var boxL = Math.sqrt(w * w + h * h)
       return {
+        position: "absolute",
         width: w + "px",
         height: h + "px",
         top: "auto",
@@ -122,17 +155,20 @@ export default {
           this.nextDegree +
           "deg)",
         transformOrigin: "0% 100%",
-        backgroundColor: this.isMobile ? "white" : "",
-        // backgroundColor: 'white'
+        backgroundColor: "white",
+        overflow: "hidden",
+        userSelect: "none",
+        zIndex: this.nextMove ? 3 : 0,
       };
     },
-    turnnextContentRightStl: function () {
+    mobileNextContentRightStyle() {
       var w = this.isMobile ? this.width * 0.9 : this.width * 0.45;
       var h = this.height * 0.9;
       // var boxL = Math.sqrt(w * w + h * h)
       var deg = 0 - this.nextDegree;
       var dx = 0 - this.nextX;
       return {
+        position: "absolute",
         width: w + "px",
         height: h + "px",
         top: "auto",
@@ -148,6 +184,9 @@ export default {
           deg +
           "deg)",
         transformOrigin: "100% 100%",
+        overflow: "hidden",
+        userSelect: "none",
+        zIndex: this.nextMove ? 3 : 0,
       };
     },
   },
@@ -281,7 +320,6 @@ export default {
     },
     turningAnimationPhase2(that) {
       if (that.nextMove === true) {
-        that.nextMove = false;
         var old2deg = 0 - that.nextDegree;
         var newnextContainer = 0 - that.width * (that.isMobile ? 0.9 : 0.45);
         var newnextX2 = 0 - that.width * (that.isMobile ? 0.9 : 0.45);
@@ -364,10 +402,10 @@ export default {
           that.nextY = 0;
           that.nextContainer = 0;
           that.nextDegree = 0;
-          that.ind = (that.ind + (that.isMobile ? 1 : 2)) % that.pages.length;
+          that.page = (that.page + (that.isMobile ? 1 : 2)) % that.pages.length;
           that.nextContainerLeft.style.zIndex = 0;
           that.busy = false;
-          console.log(that.ind);
+          that.nextMove = false;
         };
       }
     },
@@ -413,12 +451,16 @@ export default {
       if (this.isMobile) return;
       console.log("here mouse down");
       if (!this.nextContentLeft) {
-        this.nextContentLeft = document.querySelector(".turn-page");
+        this.nextContentLeft = document.querySelector(".mobileNextContentLeft");
         this.nextContentRight = document.querySelector(
-          ".turn-nextContentRight"
+          ".mobile-next-content-right"
         );
-        this.nextContainerLeft = document.querySelector(".turn-wrapper");
-        this.nextContainerRight = document.querySelector(".turn-wrapper2");
+        this.nextContainerLeft = document.querySelector(
+          ".mobileNextContainerLeft"
+        );
+        this.nextContainerRight = document.querySelector(
+          ".mobile-next-container-right"
+        );
       }
       this.nextContainerLeft.style.zIndex = 2;
       var brX = this.width * 0.95;
@@ -449,17 +491,21 @@ export default {
         this.$options.methods.computeDeg(this, e.x, e.y);
       }
     },
-    touchStartHandler(e) {
+    mobileStart(e) {
       if (this.busy) return;
       console.log("touch start at", e.touches[0].clientX, e.touches[0].clientY);
       if (!this.isMobile) return;
       if (!this.nextContentLeft) {
-        this.nextContentLeft = document.querySelector(".turn-page");
+        this.nextContentLeft = document.querySelector(".mobileNextContentLeft");
         this.nextContentRight = document.querySelector(
-          ".turn-nextContentRight"
+          ".mobile-next-content-right"
         );
-        this.nextContainerLeft = document.querySelector(".turn-wrapper");
-        this.nextContainerRight = document.querySelector(".turn-wrapper2");
+        this.nextContainerLeft = document.querySelector(
+          ".mobileNextContainerLeft"
+        );
+        this.nextContainerRight = document.querySelector(
+          ".mobile-next-container-right"
+        );
       }
       this.nextContainerLeft.style.zIndex = 2;
       var brX = this.width * 0.95;
@@ -477,7 +523,7 @@ export default {
         this.$options.methods.computeDeg(this, x, y);
       }
     },
-    touchMoveHandler(e) {
+    mobileMove(e) {
       if (this.busy) return;
       console.log("touch move");
       if (!this.isMobile) return;
@@ -493,7 +539,7 @@ export default {
         );
       }
     },
-    touchEndHandler() {
+    mobileEnd() {
       if (this.busy) return;
       console.log("touch end");
       if (!this.isMobile) return;
@@ -507,64 +553,9 @@ export default {
     window.height = window.innerHeight;
     this.width = window.width;
     this.height = window.height;
-    this.rightX = this.width * 0.95;
+    this.diagonal = Math.sqrt(
+      this.width * this.width + this.height * this.height
+    );
   },
 };
 </script>
-
-<style scoped>
-.wrapper {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  overflow: hidden;
-  z-index: 1;
-}
-.page {
-  width: 45%;
-  height: 90%;
-  display: inline-block;
-  position: absolute;
-  top: 5%;
-  bottom: auto;
-  z-index: 1;
-  overflow: hidden;
-}
-
-.leftpage {
-  left: 5%;
-  right: auto;
-}
-
-.rightpage {
-  left: auto;
-  right: 5%;
-}
-
-.turn-wrapper {
-  position: absolute;
-  z-index: 0;
-  border-color: blue;
-  overflow: hidden;
-}
-
-.turn-wrapper2 {
-  position: absolute;
-  z-index: 2;
-  border-color: blue;
-  overflow: hidden;
-}
-
-.turn-page {
-  position: absolute;
-  z-index: 3;
-  overflow: hidden;
-}
-
-.turn-nextContentRight {
-  position: absolute;
-  overflow: hidden;
-}
-</style>

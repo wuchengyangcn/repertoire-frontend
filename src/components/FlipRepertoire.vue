@@ -389,20 +389,109 @@ export default {
       that.prevDegree = -(alpha / Math.PI) * 180;
       that.prevContainer = (y1 - y) * Math.tan(alpha);
     },
+    prevStart(that) {
+      that.busy = true;
+      let alpha = (that.prevDegree * Math.PI) / 180;
+      let newPrevX = 0.9 * that.width * Math.cos(alpha);
+      let newPrevY = 0.9 * that.width * Math.sin(alpha);
+      let newPrevContainer = 0.9 * that.width;
+      const leftContainer = [
+        {
+          transform: `translateX(${that.prevContainer}px) rotate(${that.prevDegree}deg)`,
+        },
+        {
+          transform: `translateX(${newPrevContainer}px) rotate(${that.prevDegree}deg)`,
+        },
+      ];
+      const leftContent = [
+        {
+          transform: `translateX(${-that.prevX}px) translateY(${
+            that.prevY
+          }px) rotate(${-that.prevDegree}deg)`,
+        },
+        {
+          transform: `translateX(${-newPrevX}px) translateY(${newPrevY}px) rotate(${-that.prevDegree}deg)`,
+        },
+      ];
+      const rightContainer = [
+        {
+          transform: `translateX(${that.prevContainer}px) rotate(${that.prevDegree}deg)`,
+        },
+        {
+          transform: `translateX(${newPrevContainer}px) rotate(${that.prevDegree}deg)`,
+        },
+      ];
+      const rightContent = [
+        {
+          transform: `translateX(${that.prevX}px) translateY(${that.prevY}px) rotate(${that.prevDegree}deg)`,
+        },
+        {
+          transform: `translateX(${newPrevX}px) translateY(${newPrevY}px) rotate(${that.prevDegree}deg)`,
+        },
+      ];
+      const duration = { duration: 1000 };
+      that.prevContainerLeft.animate(leftContainer, duration);
+      that.prevContentLeft.animate(leftContent, duration);
+      that.prevContainerRight.animate(rightContainer, duration);
+      that.prevContentRight.animate(rightContent, duration);
+    },
+    prevEnd(that) {
+      that.busy = true;
+      let newPrevX = 0.9 * that.width;
+      let newPrevContainer = 0.9 * that.width;
+      const leftContainer = [
+        {
+          transform: `translateX(${newPrevContainer}px) rotate(${that.prevDegree}deg)`,
+        },
+        {
+          transform: `translateX(${newPrevContainer}px) rotate(0deg)`,
+        },
+      ];
+      const leftContent = [
+        {
+          transform: `translateX(${-newPrevX}px) translateY(0px) rotate(${-that.prevDegree}deg)`,
+          transformOrigin: "100% 100%",
+        },
+        {
+          transform: `translateX(${-newPrevX}px) translateY(0px) rotate(0deg)`,
+          transformOrigin: "100% 100%",
+        },
+      ];
+      const rightContainer = [
+        {
+          transform: `translateX(${newPrevContainer}px) rotate(${that.prevDegree}deg)`,
+        },
+        {
+          transform: `translateX(${newPrevContainer}px) rotate(0deg)`,
+        },
+      ];
+      const rightContent = [
+        {
+          transform: `translateX(${newPrevX}px) translateY(0px) rotate(${that.prevDegree}deg)`,
+          transformOrigin: "0% 100%",
+        },
+        {
+          transform: `translateX(${newPrevX}px) translateY(0px) rotate(0deg)`,
+          transformOrigin: "0% 100%",
+        },
+      ];
+      const duration = { duration: 1000, delay: 1000 };
+      that.prevContainerLeft.animate(leftContainer, duration);
+      that.prevContentLeft.animate(leftContent, duration);
+      that.prevContainerRight.animate(rightContainer, duration);
+      let lastStep = that.prevContentRight.animate(rightContent, duration);
+      lastStep.onfinish = () => {
+        that.prevX = 0;
+        that.prevY = 0;
+        that.prevDegree = 0;
+        that.prevContainer = 0;
+        that.page = (that.page - 1 + that.pages.length) % that.pages.length;
+        that.prevMove = false;
+        that.busy = false;
+      };
+    },
     mobileStart(event) {
       if (this.busy || this.nextMove || this.prevMove) return;
-      this.nextContainerLeft = document.querySelector(
-        ".mobile-next-container-left"
-      );
-      this.nextContentLeft = document.querySelector(
-        ".mobile-next-content-left"
-      );
-      this.nextContainerRight = document.querySelector(
-        ".mobile-next-container-right"
-      );
-      this.nextContentRight = document.querySelector(
-        ".mobile-next-content-right"
-      );
       let x = event.touches[0].clientX;
       let y = event.touches[0].clientY;
       if (
@@ -411,6 +500,18 @@ export default {
         y <= 0.95 * this.height &&
         y >= 0.65 * this.height
       ) {
+        this.nextContainerLeft = document.querySelector(
+          ".mobile-next-container-left"
+        );
+        this.nextContentLeft = document.querySelector(
+          ".mobile-next-content-left"
+        );
+        this.nextContainerRight = document.querySelector(
+          ".mobile-next-container-right"
+        );
+        this.nextContentRight = document.querySelector(
+          ".mobile-next-content-right"
+        );
         this.nextMove = true;
         this.nextUpdate(this, x, y);
         return;
@@ -421,6 +522,18 @@ export default {
         y <= 0.95 * this.height &&
         y >= 0.65 * this.height
       ) {
+        this.prevContainerLeft = document.querySelector(
+          ".mobile-prev-container-left"
+        );
+        this.prevContentLeft = document.querySelector(
+          ".mobile-prev-content-left"
+        );
+        this.prevContainerRight = document.querySelector(
+          ".mobile-prev-container-right"
+        );
+        this.prevContentRight = document.querySelector(
+          ".mobile-prev-content-right"
+        );
         this.prevMove = true;
         this.prevUpdate(this, x, y);
         return;
@@ -463,17 +576,16 @@ export default {
           y > 0.95 * this.height ||
           y < 0.05 * this.height
         ) {
-          // this.prevStart(this);
-          // this.prevEnd(this);
+          this.prevStart(this);
+          this.prevEnd(this);
           return;
         }
         // avoid ripping
         let x0 = 0.05 * this.width;
         let y0 = 0.95 * this.height;
         let tip = ((y0 - y) / (x - x0)) * ((y0 - y) / 2) + (x + x0) / 2;
-        console.log(tip);
         if (tip > 0.95 * this.width) {
-          // this.prevEnd(this);
+          this.prevEnd(this);
           return;
         }
         this.prevUpdate(this, x, y);
@@ -488,8 +600,8 @@ export default {
         return;
       }
       if (this.prevMove) {
-        // this.prevStart(this);
-        // this.prevEnd(this);
+        this.prevStart(this);
+        this.prevEnd(this);
         return;
       }
     },

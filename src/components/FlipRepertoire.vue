@@ -32,6 +32,25 @@
           v-html="pages[(page + 1) % pages.length]"
         ></div>
       </div>
+      <div
+        class="mobile-prev-container-left"
+        v-bind:style="mobilePrevContainerLeftStyle"
+      >
+        <div
+          class="mobile-prev-content-left"
+          v-bind:style="mobilePrevContentLeftStyle"
+          v-html="pages[(page - 1 + pages.length) % pages.length]"
+        ></div>
+      </div>
+      <div
+        class="mobile-prev-container-right"
+        v-bind:style="mobilePrevContainerRightStyle"
+      >
+        <div
+          class="mobile-prev-content-right"
+          v-bind:style="mobilePrevContentRightStyle"
+        ></div>
+      </div>
     </div>
   </div>
 </template>
@@ -57,6 +76,15 @@ export default {
       nextContentRight: "",
       nextContainerLeft: "",
       nextContainerRight: "",
+      prevX: 0,
+      prevY: 0,
+      prevDegree: 0,
+      prevContainer: 0,
+      prevMove: false,
+      prevContentLeft: "",
+      prevContentRight: "",
+      prevContainerLeft: "",
+      prevContainerRight: "",
     };
   },
   computed: {
@@ -146,11 +174,78 @@ export default {
         right: "100%",
         overflow: "hidden",
         userSelect: "none",
-        transform: `translateX(${0 - this.nextX}px) translateY(${
+        transform: `translateX(${-this.nextX}px) translateY(${
           this.nextY
-        }px) rotate(${0 - this.nextDegree}deg`,
+        }px) rotate(${-this.nextDegree}deg`,
         transformOrigin: "100% 100%",
         zIndex: this.nextMove ? 3 : 0,
+      };
+    },
+    mobilePrevContainerLeftStyle() {
+      return {
+        position: "absolute",
+        width: 0.9 * this.diagonal + "px",
+        height: 0.9 * this.diagonal + "px",
+        top: "auto",
+        bottom: 0.05 * this.height + "px",
+        right: 0.95 * this.width + "px",
+        left: "auto",
+        overflow: "hidden",
+        userSelect: "none",
+        transform: `translateX(${this.prevContainer}px) rotate(${this.prevDegree}deg)`,
+        transformOrigin: "100% 100%",
+        zIndex: this.prevMove ? 2 : 0,
+      };
+    },
+    mobilePrevContentLeftStyle() {
+      return {
+        position: "absolute",
+        width: 0.9 * this.width + "px",
+        height: 0.9 * this.height + "px",
+        top: "auto",
+        bottom: "0%",
+        left: "100%",
+        right: "auto",
+        overflow: "hidden",
+        userSelect: "none",
+        transform: `translateX(${-this.prevX}px) translateY(${
+          this.prevY
+        }px) rotate(${-this.prevDegree}deg)`,
+        transformOrigin: "0% 100%",
+        zIndex: this.prevMove ? 3 : 0,
+      };
+    },
+    mobilePrevContainerRightStyle() {
+      return {
+        position: "absolute",
+        width: 0.9 * this.diagonal + "px",
+        height: 0.9 * this.diagonal + "px",
+        top: "auto",
+        bottom: 0.05 * this.height + "px",
+        left: 0.05 * this.width + "px",
+        right: "auto",
+        overflow: "hidden",
+        userSelect: "none",
+        transform: `translateX(${this.prevContainer}px) rotate(${this.prevDegree}deg)`,
+        transformOrigin: "0% 100%",
+        zIndex: this.prevMove ? 2 : 0,
+      };
+    },
+    mobilePrevContentRightStyle() {
+      return {
+        position: "absolute",
+        width: 0.9 * this.width + "px",
+        height: 0.9 * this.height + "px",
+        top: "auto",
+        bottom: "0%",
+        left: "auto",
+        right: "100%",
+        overflow: "hidden",
+        userSelect: "none",
+        transform: `translateX(${this.prevX}px) translateY(${this.prevY}px) rotate(${this.prevDegree}deg)`,
+        transformOrigin: "100% 100%",
+        zIndex: this.prevMove ? 3 : 0,
+        backgroundColor: "white",
       };
     },
   },
@@ -281,8 +376,21 @@ export default {
         that.busy = false;
       };
     },
+    prevUpdate(that, x0, y0) {
+      let x1 = 0.05 * that.width;
+      let y1 = 0.95 * that.height;
+      if (x0 === x1) x0 = x1 + 1;
+      if (y0 === y1) y0 = y1 - 1;
+      let y = ((x0 - x1) / (y1 - y0)) * ((x1 - x0) / 2) + (y0 + y1) / 2;
+      let x = Math.sqrt((x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1)) / 2;
+      let alpha = Math.asin(x / (y1 - y));
+      that.prevX = x;
+      that.prevY = -x * Math.tan(alpha);
+      that.prevDegree = -(alpha / Math.PI) * 180;
+      that.prevContainer = (y1 - y) * Math.tan(alpha);
+    },
     mobileStart(event) {
-      if (this.busy) return;
+      if (this.busy || this.nextMove || this.prevMove) return;
       this.nextContainerLeft = document.querySelector(
         ".mobile-next-container-left"
       );
@@ -305,6 +413,17 @@ export default {
       ) {
         this.nextMove = true;
         this.nextUpdate(this, x, y);
+        return;
+      }
+      if (
+        x <= 0.35 * this.width &&
+        x >= 0.05 * this.width &&
+        y <= 0.95 * this.height &&
+        y >= 0.65 * this.height
+      ) {
+        this.prevMove = true;
+        this.prevUpdate(this, x, y);
+        return;
       }
     },
     mobileMove(event) {
@@ -332,12 +451,47 @@ export default {
           return;
         }
         this.nextUpdate(this, x, y);
+        return;
+      }
+      if (this.prevMove) {
+        let x = event.touches[0].clientX;
+        let y = event.touches[0].clientY;
+        // out of window
+        if (
+          x > 0.95 * this.width ||
+          x < 0.05 * this.width ||
+          y > 0.95 * this.height ||
+          y < 0.05 * this.height
+        ) {
+          // this.prevStart(this);
+          // this.prevEnd(this);
+          return;
+        }
+        // avoid ripping
+        let x0 = 0.05 * this.width;
+        let y0 = 0.95 * this.height;
+        let tip = ((y0 - y) / (x - x0)) * ((y0 - y) / 2) + (x + x0) / 2;
+        console.log(tip);
+        if (tip > 0.95 * this.width) {
+          // this.prevEnd(this);
+          return;
+        }
+        this.prevUpdate(this, x, y);
+        return;
       }
     },
     mobileEnd() {
       if (this.busy) return;
-      this.nextStart(this);
-      this.nextEnd(this);
+      if (this.nextMove) {
+        this.nextStart(this);
+        this.nextEnd(this);
+        return;
+      }
+      if (this.prevMove) {
+        // this.prevStart(this);
+        // this.prevEnd(this);
+        return;
+      }
     },
   },
   mounted() {

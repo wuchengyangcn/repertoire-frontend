@@ -20,5 +20,10 @@ npm run build
 npm run lint
 ```
 
+### Deploy as iOS application
+```
+ionic capacitor run ios
+```
+
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).

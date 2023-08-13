@@ -3,14 +3,14 @@
     <div
       v-if="isMobile"
       class="mobile-repertoire"
-      v-bind:style="mobileRepertoireStyle"
+      v-bind:style="repertoireStyle"
       @touchstart="mobileStart($event)"
       @touchmove="mobileMove($event)"
       @touchend="mobileEnd()"
     >
       <div
-        class="mobile-curr-content"
-        v-bind:style="mobileCurrContentStyle"
+        class="mobile-curr-content-right"
+        v-bind:style="currContentRightStyle"
         v-html="pages[page]"
       ></div>
       <div
@@ -52,6 +52,22 @@
         ></div>
       </div>
     </div>
+    <div
+      v-if="!isMobile"
+      class="desktop-repertoire"
+      v-bind:style="repertoireStyle"
+    >
+      <div
+        class="desktop-curr-content-left"
+        v-bind:style="currContentLeftStyle"
+        v-html="pages[page]"
+      ></div>
+      <div
+        class="desktop-curr-content-right"
+        v-bind:style="currContentRightStyle"
+        v-html="pages[(page + 1) % pages.length]"
+      ></div>
+    </div>
   </div>
 </template>
 
@@ -63,7 +79,9 @@ export default {
       busy: false,
       isMobile: false,
       pages: [],
-      page: 0,
+      page: 2,
+      margin: 0.05,
+      box: 0.3,
       height: 0,
       width: 0,
       diagonal: 0,
@@ -88,7 +106,7 @@ export default {
     };
   },
   computed: {
-    mobileRepertoireStyle() {
+    repertoireStyle() {
       return {
         position: "absolute",
         height: this.height + "px",
@@ -100,15 +118,35 @@ export default {
         zIndex: 0,
       };
     },
-    mobileCurrContentStyle() {
+    currContentLeftStyle() {
       return {
         position: "absolute",
-        height: 0.9 * this.height + "px",
-        width: 0.9 * this.width + "px",
-        top: 0.05 * this.height + "px",
-        bottom: 0.05 * this.height + "px",
-        left: 0.05 * this.width + "px",
-        right: 0.05 * this.width + "px",
+        height: (1 - 2 * this.margin) * this.height + "px",
+        width:
+          (this.isMobile ? 1 - 2 * this.margin : 0.5 - this.margin) *
+            this.width +
+          "px",
+        top: this.margin * this.height + "px",
+        bottom: this.margin * this.height + "px",
+        left: this.margin * this.width + "px",
+        right: (this.isMobile ? 1 : 0.5) * this.width + "px",
+        overflow: "hidden",
+        userSelect: "none",
+        zIndex: 1,
+      };
+    },
+    currContentRightStyle() {
+      return {
+        position: "absolute",
+        height: (1 - 2 * this.margin) * this.height + "px",
+        width:
+          (this.isMobile ? 1 - 2 * this.margin : 0.5 - this.margin) *
+            this.width +
+          "px",
+        top: this.margin * this.height + "px",
+        bottom: this.margin * this.height + "px",
+        left: (this.isMobile ? 1 : 0.5) * this.width + "px",
+        right: this.margin * this.width + "px",
         overflow: "hidden",
         userSelect: "none",
         zIndex: 1,
@@ -117,12 +155,12 @@ export default {
     mobileNextContainerLeftStyle() {
       return {
         position: "absolute",
-        width: 0.9 * this.diagonal + "px",
-        height: 0.9 * this.diagonal + "px",
+        width: (1 - 2 * this.margin) * this.diagonal + "px",
+        height: (1 - 2 * this.margin) * this.diagonal + "px",
         top: "auto",
-        bottom: 0.05 * this.height + "px",
+        bottom: this.margin * this.height + "px",
         left: "auto",
-        right: 0.05 * this.width + "px",
+        right: this.margin * this.width + "px",
         overflow: "hidden",
         userSelect: "none",
         transform: `translateX(${this.nextContainer}px) rotate(${this.nextDegree}deg)`,
@@ -133,8 +171,8 @@ export default {
     mobileNextContentLeftStyle() {
       return {
         position: "absolute",
-        width: 0.9 * this.width + "px",
-        height: 0.9 * this.height + "px",
+        width: (1 - 2 * this.margin) * this.width + "px",
+        height: (1 - 2 * this.margin) * this.height + "px",
         top: "auto",
         bottom: "0%",
         left: "100%",
@@ -150,11 +188,11 @@ export default {
     mobileNextContainerRightStyle() {
       return {
         position: "absolute",
-        width: 0.9 * this.diagonal + "px",
-        height: 0.9 * this.diagonal + "px",
+        width: (1 - 2 * this.margin) * this.diagonal + "px",
+        height: (1 - 2 * this.margin) * this.diagonal + "px",
         top: "auto",
-        bottom: 0.05 * this.height + "px",
-        left: 0.95 * this.width + "px",
+        bottom: this.margin * this.height + "px",
+        left: (1 - this.margin) * this.width + "px",
         right: "auto",
         overflow: "hidden",
         userSelect: "none",
@@ -166,8 +204,8 @@ export default {
     mobileNextContentRightStyle() {
       return {
         position: "absolute",
-        width: 0.9 * this.width + "px",
-        height: 0.9 * this.height + "px",
+        width: (1 - 2 * this.margin) * this.width + "px",
+        height: (1 - 2 * this.margin) * this.height + "px",
         top: "auto",
         bottom: "0%",
         left: "auto",
@@ -184,11 +222,11 @@ export default {
     mobilePrevContainerLeftStyle() {
       return {
         position: "absolute",
-        width: 0.9 * this.diagonal + "px",
-        height: 0.9 * this.diagonal + "px",
+        width: (1 - 2 * this.margin) * this.diagonal + "px",
+        height: (1 - 2 * this.margin) * this.diagonal + "px",
         top: "auto",
-        bottom: 0.05 * this.height + "px",
-        right: 0.95 * this.width + "px",
+        bottom: this.margin * this.height + "px",
+        right: (1 - this.margin) * this.width + "px",
         left: "auto",
         overflow: "hidden",
         userSelect: "none",
@@ -200,8 +238,8 @@ export default {
     mobilePrevContentLeftStyle() {
       return {
         position: "absolute",
-        width: 0.9 * this.width + "px",
-        height: 0.9 * this.height + "px",
+        width: (1 - 2 * this.margin) * this.width + "px",
+        height: (1 - 2 * this.margin) * this.height + "px",
         top: "auto",
         bottom: "0%",
         left: "100%",
@@ -218,11 +256,11 @@ export default {
     mobilePrevContainerRightStyle() {
       return {
         position: "absolute",
-        width: 0.9 * this.diagonal + "px",
-        height: 0.9 * this.diagonal + "px",
+        width: (1 - 2 * this.margin) * this.diagonal + "px",
+        height: (1 - 2 * this.margin) * this.diagonal + "px",
         top: "auto",
-        bottom: 0.05 * this.height + "px",
-        left: 0.05 * this.width + "px",
+        bottom: this.margin * this.height + "px",
+        left: this.margin * this.width + "px",
         right: "auto",
         overflow: "hidden",
         userSelect: "none",
@@ -234,8 +272,8 @@ export default {
     mobilePrevContentRightStyle() {
       return {
         position: "absolute",
-        width: 0.9 * this.width + "px",
-        height: 0.9 * this.height + "px",
+        width: (1 - 2 * this.margin) * this.width + "px",
+        height: (1 - 2 * this.margin) * this.height + "px",
         top: "auto",
         bottom: "0%",
         left: "auto",
@@ -263,8 +301,8 @@ export default {
         .then((data) => this.pages.push(...data));
     },
     nextUpdate(that, x0, y0) {
-      let x1 = 0.95 * that.width;
-      let y1 = 0.95 * that.height;
+      let x1 = (1 - that.margin) * that.width;
+      let y1 = (1 - that.margin) * that.height;
       if (x0 === x1) x0 = x1 - 1;
       if (y0 === y1) y0 = y1 - 1;
       let y = ((x0 - x1) / (y1 - y0)) * ((x1 - x0) / 2) + (y0 + y1) / 2;
@@ -278,9 +316,9 @@ export default {
     nextFlip(that) {
       that.busy = true;
       let alpha = (that.nextDegree * Math.PI) / 180;
-      let newNextX = -0.9 * that.width * Math.cos(alpha);
-      let newNextY = -0.9 * that.width * Math.sin(alpha);
-      let newNextContainer = -0.9 * that.width;
+      let newNextX = -(1 - 2 * that.margin) * that.width * Math.cos(alpha);
+      let newNextY = -(1 - 2 * that.margin) * that.width * Math.sin(alpha);
+      let newNextContainer = -(1 - 2 * that.margin) * that.width;
       const leftContainer = [
         {
           transform: `translateX(${that.nextContainer}px) rotate(${that.nextDegree}deg)`,
@@ -326,8 +364,8 @@ export default {
     },
     nextSpin(that) {
       that.busy = true;
-      let newNextX = -0.9 * that.width;
-      let newNextContainer = -0.9 * that.width;
+      let newNextX = -(1 - 2 * that.margin) * that.width;
+      let newNextContainer = -(1 - 2 * that.margin) * that.width;
       const leftContainer = [
         {
           transform: `translateX(${newNextContainer}px) rotate(${that.nextDegree}deg)`,
@@ -380,8 +418,8 @@ export default {
       };
     },
     prevUpdate(that, x0, y0) {
-      let x1 = 0.05 * that.width;
-      let y1 = 0.95 * that.height;
+      let x1 = that.margin * that.width;
+      let y1 = (1 - that.margin) * that.height;
       if (x0 === x1) x0 = x1 + 1;
       if (y0 === y1) y0 = y1 - 1;
       let y = ((x0 - x1) / (y1 - y0)) * ((x1 - x0) / 2) + (y0 + y1) / 2;
@@ -395,9 +433,9 @@ export default {
     prevFlip(that) {
       that.busy = true;
       let alpha = (that.prevDegree * Math.PI) / 180;
-      let newPrevX = 0.9 * that.width * Math.cos(alpha);
-      let newPrevY = 0.9 * that.width * Math.sin(alpha);
-      let newPrevContainer = 0.9 * that.width;
+      let newPrevX = (1 - 2 * that.margin) * that.width * Math.cos(alpha);
+      let newPrevY = (1 - 2 * that.margin) * that.width * Math.sin(alpha);
+      let newPrevContainer = (1 - 2 * that.margin) * that.width;
       const leftContainer = [
         {
           transform: `translateX(${that.prevContainer}px) rotate(${that.prevDegree}deg)`,
@@ -443,8 +481,8 @@ export default {
     },
     prevSpin(that) {
       that.busy = true;
-      let newPrevX = 0.9 * that.width;
-      let newPrevContainer = 0.9 * that.width;
+      let newPrevX = (1 - 2 * that.margin) * that.width;
+      let newPrevContainer = (1 - 2 * that.margin) * that.width;
       const leftContainer = [
         {
           transform: `translateX(${newPrevContainer}px) rotate(${that.prevDegree}deg)`,
@@ -501,10 +539,10 @@ export default {
       let x = event.touches[0].clientX;
       let y = event.touches[0].clientY;
       if (
-        x <= 0.95 * this.width &&
-        x >= 0.65 * this.width &&
-        y <= 0.95 * this.height &&
-        y >= 0.65 * this.height
+        x <= (1 - this.margin) * this.width &&
+        x >= (1 - this.margin - this.box) * this.width &&
+        y <= (1 - this.margin) * this.height &&
+        y >= (1 - this.margin - this.box) * this.height
       ) {
         this.nextContainerLeft = document.querySelector(
           ".mobile-next-container-left"
@@ -523,10 +561,10 @@ export default {
         return;
       }
       if (
-        x <= 0.35 * this.width &&
-        x >= 0.05 * this.width &&
-        y <= 0.95 * this.height &&
-        y >= 0.65 * this.height
+        x <= (this.margin + this.box) * this.width &&
+        x >= this.margin * this.width &&
+        y <= (1 - this.margin) * this.height &&
+        y >= (1 - this.margin - this.box) * this.height
       ) {
         this.prevContainerLeft = document.querySelector(
           ".mobile-prev-container-left"
@@ -552,19 +590,19 @@ export default {
         let y = event.touches[0].clientY;
         // out of window
         if (
-          x > 0.95 * this.width ||
-          x < 0.05 * this.width ||
-          y > 0.95 * this.height ||
-          y < 0.05 * this.height
+          x > (1 - this.margin) * this.width ||
+          x < this.margin * this.width ||
+          y > (1 - this.margin) * this.height ||
+          y < this.margin * this.height
         ) {
           this.nextFlip(this);
           return;
         }
         // avoid ripping
-        let x0 = 0.95 * this.width;
-        let y0 = 0.95 * this.height;
+        let x0 = (1 - this.margin) * this.width;
+        let y0 = (1 - this.margin) * this.height;
         let tip = ((y0 - y) / (x - x0)) * ((y0 - y) / 2) + (x + x0) / 2;
-        if (tip < 0.05 * this.width) {
+        if (tip < this.margin * this.width) {
           this.nextSpin(this);
           return;
         }
@@ -576,19 +614,19 @@ export default {
         let y = event.touches[0].clientY;
         // out of window
         if (
-          x > 0.95 * this.width ||
-          x < 0.05 * this.width ||
-          y > 0.95 * this.height ||
-          y < 0.05 * this.height
+          x > (1 - this.margin) * this.width ||
+          x < this.margin * this.width ||
+          y > (1 - this.margin) * this.height ||
+          y < this.margin * this.height
         ) {
           this.prevFlip(this);
           return;
         }
         // avoid ripping
-        let x0 = 0.05 * this.width;
-        let y0 = 0.95 * this.height;
+        let x0 = this.margin * this.width;
+        let y0 = (1 - this.margin) * this.height;
         let tip = ((y0 - y) / (x - x0)) * ((y0 - y) / 2) + (x + x0) / 2;
-        if (tip > 0.95 * this.width) {
+        if (tip > (1 - this.margin) * this.width) {
           this.prevSpin(this);
           return;
         }

@@ -1,112 +1,61 @@
 <template>
-  <div class="repertoire">
+  <div
+    class="repertoire"
+    v-bind:style="repertoireStyle"
+    @touchstart="flipStart($event)"
+    @touchmove="flipMove($event)"
+    @touchend="flipEnd()"
+    @mousedown="flipStart($event)"
+    @mousemove="flipMove($event)"
+    @mouseup="flipEnd()"
+  >
     <div
-      v-if="isMobile"
-      class="mobile-repertoire"
-      v-bind:style="repertoireStyle"
-      @touchstart="mobileStart($event)"
-      @touchmove="mobileMove($event)"
-      @touchend="mobileEnd()"
-    >
+      class="curr-content-left"
+      v-bind:style="currContentLeftStyle"
+      v-html="isMobile ? '' : pages[page]"
+    ></div>
+    <div
+      class="curr-content-right"
+      v-bind:style="currContentRightStyle"
+      v-html="pages[isMobile ? page : (page + 1) % pages.length]"
+    ></div>
+    <div class="next-container-left" v-bind:style="nextContainerLeftStyle">
       <div
-        class="mobile-curr-content-right"
-        v-bind:style="currContentRightStyle"
-        v-html="pages[page]"
+        class="next-content-left"
+        v-bind:style="nextContentLeftStyle"
+        v-html="pages[isMobile ? '' : (page + 2) % pages.length]"
       ></div>
-      <div
-        class="mobile-next-container-left"
-        v-bind:style="nextContainerLeftStyle"
-      >
-        <div
-          class="mobile-next-content-left"
-          v-bind:style="nextContentLeftStyle"
-        ></div>
-      </div>
-      <div
-        class="mobile-next-container-right"
-        v-bind:style="nextContainerRightStyle"
-      >
-        <div
-          class="mobile-next-content-right"
-          v-bind:style="nextContentRightStyle"
-          v-html="pages[(page + 1) % pages.length]"
-        ></div>
-      </div>
-      <div
-        class="mobile-prev-container-left"
-        v-bind:style="prevContainerLeftStyle"
-      >
-        <div
-          class="mobile-prev-content-left"
-          v-bind:style="prevContentLeftStyle"
-          v-html="pages[(page - 1 + pages.length) % pages.length]"
-        ></div>
-      </div>
-      <div
-        class="mobile-prev-container-right"
-        v-bind:style="prevContainerRightStyle"
-      >
-        <div
-          class="mobile-prev-content-right"
-          v-bind:style="prevContentRightStyle"
-        ></div>
-      </div>
     </div>
-    <div
-      v-if="!isMobile"
-      class="desktop-repertoire"
-      v-bind:style="repertoireStyle"
-    >
+    <div class="next-container-right" v-bind:style="nextContainerRightStyle">
       <div
-        class="desktop-curr-content-left"
-        v-bind:style="currContentLeftStyle"
-        v-html="pages[page]"
+        class="next-content-right"
+        v-bind:style="nextContentRightStyle"
+        v-html="
+          pages[
+            isMobile ? (page + 1) % pages.length : (page + 3) % pages.length
+          ]
+        "
       ></div>
+    </div>
+    <div class="prev-container-left" v-bind:style="prevContainerLeftStyle">
       <div
-        class="desktop-curr-content-right"
-        v-bind:style="currContentRightStyle"
-        v-html="pages[(page + 1) % pages.length]"
+        class="prev-content-left"
+        v-bind:style="prevContentLeftStyle"
+        v-html="
+          pages[
+            isMobile
+              ? (page - 1 + pages.length) % pages.length
+              : (page - 2 + pages.length) % pages.length
+          ]
+        "
       ></div>
+    </div>
+    <div class="prev-container-right" v-bind:style="prevContainerRightStyle">
       <div
-        class="desktop-next-container-left"
-        v-bind:style="nextContainerLeftStyle"
-      >
-        <div
-          class="desktop-next-content-left"
-          v-bind:style="nextContentLeftStyle"
-          v-html="pages[(page + 2) % pages.length]"
-        ></div>
-      </div>
-      <div
-        class="desktop-next-container-right"
-        v-bind:style="nextContainerRightStyle"
-      >
-        <div
-          class="desktop-next-content-left"
-          v-bind:style="nextContentRightStyle"
-          v-html="pages[(page + 3) % pages.length]"
-        ></div>
-      </div>
-      <div
-        class="desktop-prev-container-left"
-        v-bind:style="prevContainerLeftStyle"
-      >
-        <div
-          class="desktop-prev-content-left"
-          v-bind:style="prevContentLeftStyle"
-          v-html="pages[(page - 1 + pages.length) % pages.length]"
-        ></div>
-      </div>
-      <div
-        class="desktop-prev-container-right"
-        v-bind:style="prevContainerRightStyle"
-      >
-        <div
-          class="desktop-prev-content-left"
-          v-bind:style="prevContentRightStyle"
-          v-html="pages[(page - 2 + pages.length) % pages.length]"
-        ></div>
-      </div>
+        class="prev-content-right"
+        v-bind:style="prevContentRightStyle"
+        v-html="pages[isMobile ? '' : (page - 1 + pages.length) % pages.length]"
+      ></div>
     </div>
   </div>
 </template>
@@ -119,7 +68,7 @@ export default {
       busy: false,
       isMobile: false,
       pages: [],
-      page: 2,
+      page: 0,
       margin: 0.05,
       box: 0.3,
       height: 0,
@@ -173,6 +122,7 @@ export default {
         overflow: "hidden",
         userSelect: "none",
         zIndex: 1,
+        boxShadow: "0px 0px 5px 5px #888888",
       };
     },
     currContentRightStyle() {
@@ -190,6 +140,7 @@ export default {
         overflow: "hidden",
         userSelect: "none",
         zIndex: 1,
+        boxShadow: "0px 0px 5px 5px #888888",
       };
     },
     nextContainerLeftStyle() {
@@ -211,7 +162,10 @@ export default {
     nextContentLeftStyle() {
       return {
         position: "absolute",
-        width: (1 - 2 * this.margin) * this.width + "px",
+        width:
+          (this.isMobile ? 1 - 2 * this.margin : 0.5 - this.margin) *
+            this.width +
+          "px",
         height: (1 - 2 * this.margin) * this.height + "px",
         top: "auto",
         bottom: "0%",
@@ -222,7 +176,8 @@ export default {
         transform: `translateX(${this.nextX}px) translateY(${this.nextY}px) rotate(${this.nextDegree}deg)`,
         transformOrigin: "0% 100%",
         zIndex: this.nextMove ? 3 : 0,
-        backgroundColor: this.isMobile ? "white" : "",
+        backgroundColor: this.isMobile ? "white" : "transparent",
+        boxShadow: "0px 0px 5px 5px #888888",
       };
     },
     nextContainerRightStyle() {
@@ -244,7 +199,10 @@ export default {
     nextContentRightStyle() {
       return {
         position: "absolute",
-        width: (1 - 2 * this.margin) * this.width + "px",
+        width:
+          (this.isMobile ? 1 - 2 * this.margin : 0.5 - this.margin) *
+            this.width +
+          "px",
         height: (1 - 2 * this.margin) * this.height + "px",
         top: "auto",
         bottom: "0%",
@@ -257,6 +215,8 @@ export default {
         }px) rotate(${-this.nextDegree}deg`,
         transformOrigin: "100% 100%",
         zIndex: this.nextMove ? 3 : 0,
+        boxShadow: "0px 0px 5px 5px #888888",
+        backgroundColor: "red",
       };
     },
     prevContainerLeftStyle() {
@@ -278,7 +238,10 @@ export default {
     prevContentLeftStyle() {
       return {
         position: "absolute",
-        width: (1 - 2 * this.margin) * this.width + "px",
+        width:
+          (this.isMobile ? 1 - 2 * this.margin : 0.5 - this.margin) *
+            this.width +
+          "px",
         height: (1 - 2 * this.margin) * this.height + "px",
         top: "auto",
         bottom: "0%",
@@ -291,6 +254,7 @@ export default {
         }px) rotate(${-this.prevDegree}deg)`,
         transformOrigin: "0% 100%",
         zIndex: this.prevMove ? 3 : 0,
+        boxShadow: "0px 0px 5px 5px #888888",
       };
     },
     prevContainerRightStyle() {
@@ -312,7 +276,10 @@ export default {
     prevContentRightStyle() {
       return {
         position: "absolute",
-        width: (1 - 2 * this.margin) * this.width + "px",
+        width:
+          (this.isMobile ? 1 - 2 * this.margin : 0.5 - this.margin) *
+            this.width +
+          "px",
         height: (1 - 2 * this.margin) * this.height + "px",
         top: "auto",
         bottom: "0%",
@@ -323,7 +290,8 @@ export default {
         transform: `translateX(${this.prevX}px) translateY(${this.prevY}px) rotate(${this.prevDegree}deg)`,
         transformOrigin: "100% 100%",
         zIndex: this.prevMove ? 3 : 0,
-        backgroundColor: this.isMobile ? "white" : "",
+        backgroundColor: this.isMobile ? "white" : "transparent",
+        boxShadow: "0px 0px 5px 5px #888888",
       };
     },
   },
@@ -400,7 +368,7 @@ export default {
           transform: `translateX(${-newNextX}px) translateY(${newNextY}px) rotate(${-that.nextDegree}deg)`,
         },
       ];
-      const duration = { duration: 100 };
+      const duration = { duration: 1000 };
       that.nextContainerLeft.animate(leftContainer, duration);
       that.nextContentLeft.animate(leftContent, duration);
       that.nextContainerRight.animate(rightContainer, duration);
@@ -451,7 +419,7 @@ export default {
           transformOrigin: "0% 100%",
         },
       ];
-      const duration = { duration: 100 };
+      const duration = { duration: 1000 };
       that.nextContainerLeft.animate(leftContainer, duration);
       that.nextContentLeft.animate(leftContent, duration);
       that.nextContainerRight.animate(rightContainer, duration);
@@ -526,7 +494,7 @@ export default {
           transform: `translateX(${newPrevX}px) translateY(${newPrevY}px) rotate(${that.prevDegree}deg)`,
         },
       ];
-      const duration = { duration: 100 };
+      const duration = { duration: 1000 };
       that.prevContainerLeft.animate(leftContainer, duration);
       that.prevContentLeft.animate(leftContent, duration);
       that.prevContainerRight.animate(rightContainer, duration);
@@ -577,7 +545,7 @@ export default {
           transformOrigin: "0% 100%",
         },
       ];
-      const duration = { duration: 100 };
+      const duration = { duration: 1000 };
       that.prevContainerLeft.animate(leftContainer, duration);
       that.prevContentLeft.animate(leftContent, duration);
       that.prevContainerRight.animate(rightContainer, duration);
@@ -594,28 +562,22 @@ export default {
         that.busy = false;
       };
     },
-    mobileStart(event) {
+    flipStart(event) {
       if (this.busy || this.nextMove || this.prevMove) return;
-      let x = event.touches[0].clientX;
-      let y = event.touches[0].clientY;
+      let x = this.isMobile ? event.touches[0].clientX : event.clientX;
+      let y = this.isMobile ? event.touches[0].clientY : event.clientY;
       if (
         x <= (1 - this.margin) * this.width &&
         x >= (1 - this.margin - this.box) * this.width &&
         y <= (1 - this.margin) * this.height &&
         y >= (1 - this.margin - this.box) * this.height
       ) {
-        this.nextContainerLeft = document.querySelector(
-          ".mobile-next-container-left"
-        );
-        this.nextContentLeft = document.querySelector(
-          ".mobile-next-content-left"
-        );
+        this.nextContainerLeft = document.querySelector(".next-container-left");
+        this.nextContentLeft = document.querySelector(".next-content-left");
         this.nextContainerRight = document.querySelector(
-          ".mobile-next-container-right"
+          ".next-container-right"
         );
-        this.nextContentRight = document.querySelector(
-          ".mobile-next-content-right"
-        );
+        this.nextContentRight = document.querySelector(".next-content-right");
         this.nextMove = true;
         this.nextUpdate(this, x, y);
         return;
@@ -626,32 +588,26 @@ export default {
         y <= (1 - this.margin) * this.height &&
         y >= (1 - this.margin - this.box) * this.height
       ) {
-        this.prevContainerLeft = document.querySelector(
-          ".mobile-prev-container-left"
-        );
-        this.prevContentLeft = document.querySelector(
-          ".mobile-prev-content-left"
-        );
+        this.prevContainerLeft = document.querySelector(".prev-container-left");
+        this.prevContentLeft = document.querySelector(".prev-content-left");
         this.prevContainerRight = document.querySelector(
-          ".mobile-prev-container-right"
+          ".prev-container-right"
         );
-        this.prevContentRight = document.querySelector(
-          ".mobile-prev-content-right"
-        );
+        this.prevContentRight = document.querySelector(".prev-content-right");
         this.prevMove = true;
         this.prevUpdate(this, x, y);
         return;
       }
     },
-    mobileMove(event) {
+    flipMove(event) {
       if (this.busy) return;
       if (this.nextMove) {
-        let x = event.touches[0].clientX;
-        let y = event.touches[0].clientY;
+        let x = this.isMobile ? event.touches[0].clientX : event.clientX;
+        let y = this.isMobile ? event.touches[0].clientY : event.clientY;
         // out of window
         if (
           x > (1 - this.margin) * this.width ||
-          x < this.margin * this.width ||
+          x < (this.isMobile ? this.margin : 0.5) * this.width ||
           y > (1 - this.margin) * this.height ||
           y < this.margin * this.height
         ) {
@@ -662,7 +618,7 @@ export default {
         let x0 = (1 - this.margin) * this.width;
         let y0 = (1 - this.margin) * this.height;
         let tip = ((y0 - y) / (x - x0)) * ((y0 - y) / 2) + (x + x0) / 2;
-        if (tip < this.margin * this.width) {
+        if (tip < (this.isMobile ? this.margin : 0.5) * this.width) {
           this.nextSpin(this);
           return;
         }
@@ -670,11 +626,11 @@ export default {
         return;
       }
       if (this.prevMove) {
-        let x = event.touches[0].clientX;
-        let y = event.touches[0].clientY;
+        let x = this.isMobile ? event.touches[0].clientX : event.clientX;
+        let y = this.isMobile ? event.touches[0].clientY : event.clientY;
         // out of window
         if (
-          x > (1 - this.margin) * this.width ||
+          x > (this.isMobile ? 1 - this.margin : 0.5) * this.width ||
           x < this.margin * this.width ||
           y > (1 - this.margin) * this.height ||
           y < this.margin * this.height
@@ -686,7 +642,7 @@ export default {
         let x0 = this.margin * this.width;
         let y0 = (1 - this.margin) * this.height;
         let tip = ((y0 - y) / (x - x0)) * ((y0 - y) / 2) + (x + x0) / 2;
-        if (tip > (1 - this.margin) * this.width) {
+        if (tip > (this.isMobile ? 1 - this.margin : 0.5) * this.width) {
           this.prevSpin(this);
           return;
         }
@@ -694,7 +650,7 @@ export default {
         return;
       }
     },
-    mobileEnd() {
+    flipEnd() {
       if (this.busy) return;
       if (this.nextMove) {
         this.nextFlip(this);
@@ -710,7 +666,7 @@ export default {
     this.width = window.innerWidth;
     this.height = window.innerHeight;
     this.diagonal = Math.sqrt(
-      (this.isMobile ? 0.25 : 1) * this.width * this.width +
+      (this.isMobile ? 1 : 0.25) * this.width * this.width +
         this.height * this.height
     );
   },

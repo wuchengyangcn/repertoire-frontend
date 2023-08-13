@@ -250,7 +250,7 @@ export default {
     },
   },
   created() {
-    this.isMobile = true;
+    this.isMobile = "ontouchstart" in document.documentElement;
     this.fetchData();
   },
   methods: {
@@ -258,7 +258,7 @@ export default {
       const domain = `http://127.0.0.1:5000/repertoire?device=${
         this.isMobile ? "mobile" : "desktop"
       }`;
-      fetch(domain)
+      fetch(domain, { mode: "cors" })
         .then((response) => response.json())
         .then((data) => this.pages.push(...data));
     },
@@ -275,7 +275,7 @@ export default {
       that.nextDegree = (alpha / Math.PI) * 180;
       that.nextContainer = (y - y1) * Math.tan(alpha);
     },
-    nextStart(that) {
+    nextFlip(that) {
       that.busy = true;
       let alpha = (that.nextDegree * Math.PI) / 180;
       let newNextX = -0.9 * that.width * Math.cos(alpha);
@@ -319,9 +319,12 @@ export default {
       that.nextContainerLeft.animate(leftContainer, duration);
       that.nextContentLeft.animate(leftContent, duration);
       that.nextContainerRight.animate(rightContainer, duration);
-      that.nextContentRight.animate(rightContent, duration);
+      let lastStep = that.nextContentRight.animate(rightContent, duration);
+      lastStep.onfinish = () => {
+        that.nextSpin(that);
+      };
     },
-    nextEnd(that) {
+    nextSpin(that) {
       that.busy = true;
       let newNextX = -0.9 * that.width;
       let newNextContainer = -0.9 * that.width;
@@ -361,7 +364,7 @@ export default {
           transformOrigin: "0% 100%",
         },
       ];
-      const duration = { duration: 1000, delay: 1000 };
+      const duration = { duration: 1000 };
       that.nextContainerLeft.animate(leftContainer, duration);
       that.nextContentLeft.animate(leftContent, duration);
       that.nextContainerRight.animate(rightContainer, duration);
@@ -389,7 +392,7 @@ export default {
       that.prevDegree = -(alpha / Math.PI) * 180;
       that.prevContainer = (y1 - y) * Math.tan(alpha);
     },
-    prevStart(that) {
+    prevFlip(that) {
       that.busy = true;
       let alpha = (that.prevDegree * Math.PI) / 180;
       let newPrevX = 0.9 * that.width * Math.cos(alpha);
@@ -433,9 +436,12 @@ export default {
       that.prevContainerLeft.animate(leftContainer, duration);
       that.prevContentLeft.animate(leftContent, duration);
       that.prevContainerRight.animate(rightContainer, duration);
-      that.prevContentRight.animate(rightContent, duration);
+      let lastStep = that.prevContentRight.animate(rightContent, duration);
+      lastStep.onfinish = () => {
+        that.prevSpin(that);
+      };
     },
-    prevEnd(that) {
+    prevSpin(that) {
       that.busy = true;
       let newPrevX = 0.9 * that.width;
       let newPrevContainer = 0.9 * that.width;
@@ -475,7 +481,7 @@ export default {
           transformOrigin: "0% 100%",
         },
       ];
-      const duration = { duration: 1000, delay: 1000 };
+      const duration = { duration: 1000 };
       that.prevContainerLeft.animate(leftContainer, duration);
       that.prevContentLeft.animate(leftContent, duration);
       that.prevContainerRight.animate(rightContainer, duration);
@@ -551,8 +557,7 @@ export default {
           y > 0.95 * this.height ||
           y < 0.05 * this.height
         ) {
-          this.nextStart(this);
-          this.nextEnd(this);
+          this.nextFlip(this);
           return;
         }
         // avoid ripping
@@ -560,7 +565,7 @@ export default {
         let y0 = 0.95 * this.height;
         let tip = ((y0 - y) / (x - x0)) * ((y0 - y) / 2) + (x + x0) / 2;
         if (tip < 0.05 * this.width) {
-          this.nextEnd(this);
+          this.nextSpin(this);
           return;
         }
         this.nextUpdate(this, x, y);
@@ -576,8 +581,7 @@ export default {
           y > 0.95 * this.height ||
           y < 0.05 * this.height
         ) {
-          this.prevStart(this);
-          this.prevEnd(this);
+          this.prevFlip(this);
           return;
         }
         // avoid ripping
@@ -585,7 +589,7 @@ export default {
         let y0 = 0.95 * this.height;
         let tip = ((y0 - y) / (x - x0)) * ((y0 - y) / 2) + (x + x0) / 2;
         if (tip > 0.95 * this.width) {
-          this.prevEnd(this);
+          this.prevSpin(this);
           return;
         }
         this.prevUpdate(this, x, y);
@@ -595,13 +599,11 @@ export default {
     mobileEnd() {
       if (this.busy) return;
       if (this.nextMove) {
-        this.nextStart(this);
-        this.nextEnd(this);
+        this.nextFlip(this);
         return;
       }
       if (this.prevMove) {
-        this.prevStart(this);
-        this.prevEnd(this);
+        this.prevFlip(this);
         return;
       }
     },

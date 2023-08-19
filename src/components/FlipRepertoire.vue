@@ -581,8 +581,13 @@ export default {
     },
     flipStart(event) {
       if (this.busy || this.nextMove || this.prevMove) return;
-      let x = this.isMobile ? event.touches[0].clientX : event.clientX;
-      let y = this.isMobile ? event.touches[0].clientY : event.clientY;
+      let x = this.isMobile ? event.touches : event.clientX;
+      let y = this.isMobile ? event.touches : event.clientY;
+      if (x === undefined || y === undefined) return;
+      if (this.isMobile) {
+        x = x[0].clientX;
+        y = y[0].clientY;
+      }
       if (
         x <= (1 - this.margin) * this.width &&
         x >= (1 - this.margin - this.box) * this.width &&
@@ -618,9 +623,14 @@ export default {
     },
     flipMove(event) {
       if (this.busy) return;
+      let x = this.isMobile ? event.touches : event.clientX;
+      let y = this.isMobile ? event.touches : event.clientY;
+      if (x === undefined || y === undefined) return;
+      if (this.isMobile) {
+        x = x[0].clientX;
+        y = y[0].clientY;
+      }
       if (this.nextMove) {
-        let x = this.isMobile ? event.touches[0].clientX : event.clientX;
-        let y = this.isMobile ? event.touches[0].clientY : event.clientY;
         // out of window
         if (
           x > (1 - this.margin) * this.width ||
@@ -643,8 +653,6 @@ export default {
         return;
       }
       if (this.prevMove) {
-        let x = this.isMobile ? event.touches[0].clientX : event.clientX;
-        let y = this.isMobile ? event.touches[0].clientY : event.clientY;
         // out of window
         if (
           x > (this.isMobile ? 1 - this.margin : 0.5) * this.width ||

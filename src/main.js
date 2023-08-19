@@ -17,6 +17,10 @@ Copyright (C) 2023 musicnbrain.org
 
 import { createApp } from "vue";
 import App from "./App.vue";
+import router from "./router";
 import { IonicVue } from "@ionic/vue";
 
-createApp(App).use(IonicVue).mount("#app");
+const app = createApp(App);
+app.use(router);
+app.use(IonicVue);
+app.mount("#app");

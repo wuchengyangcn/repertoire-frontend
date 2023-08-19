@@ -16,5 +16,16 @@ Copyright (C) 2023 musicnbrain.org
 -->
 
 <template>
-  <router-view />
+  <Repertoire />
 </template>
+
+<script>
+import Repertoire from "@/components/FlipRepertoire.vue";
+
+export default {
+  name: "RepertoireView",
+  components: {
+    Repertoire,
+  },
+};
+</script>

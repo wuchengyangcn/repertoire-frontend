@@ -16,5 +16,36 @@ Copyright (C) 2023 musicnbrain.org
 -->
 
 <template>
-  <router-view />
+  <div class="barcode">
+    <router-link to="/repertoire">
+      <qrcode-vue v-bind:value="url" v-bind:size="size" />
+    </router-link>
+  </div>
 </template>
+
+<script>
+import QrcodeVue from "qrcode.vue";
+
+export default {
+  data() {
+    return {
+      name: "BarcodeView",
+      url: "localhost:8080/repertoire",
+      size: Math.min(window.innerWidth, window.innerHeight) * 0.9,
+    };
+  },
+  components: {
+    QrcodeVue,
+  },
+};
+</script>
+
+<style scoped>
+.barcode {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+</style>

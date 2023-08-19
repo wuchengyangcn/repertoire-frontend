@@ -1,4 +1,4 @@
-<!--
+/*
 Copyright (C) 2023 musicnbrain.org
 
     This program is free software: you can redistribute it and/or modify
@@ -13,8 +13,28 @@ Copyright (C) 2023 musicnbrain.org
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
--->
+*/
 
-<template>
-  <router-view />
-</template>
+import { createRouter, createWebHistory } from "vue-router";
+import BarcodeView from "../views/BarcodeView.vue";
+import RepertoireView from "../views/RepertoireView.vue";
+
+const routes = [
+  {
+    path: "/",
+    name: "barcode",
+    component: BarcodeView,
+  },
+  {
+    path: "/repertoire",
+    name: "repertoire",
+    component: RepertoireView,
+  },
+];
+
+const router = createRouter({
+  history: createWebHistory(process.env.BASE_URL),
+  routes,
+});
+
+export default router;

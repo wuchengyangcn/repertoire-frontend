@@ -1,4 +1,4 @@
-/*
+<!--
 Copyright (C) 2023 musicnbrain.org
 
     This program is free software: you can redistribute it and/or modify
@@ -13,34 +13,8 @@ Copyright (C) 2023 musicnbrain.org
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
+-->
 
-import { createRouter, createWebHistory } from "vue-router";
-import BarcodeView from "@/views/BarcodeView.vue";
-import RepertoireView from "@/views/RepertoireView.vue";
-import UploadView from "@/views/UploadView.vue";
-
-const routes = [
-  {
-    path: "/",
-    name: "barcode",
-    component: BarcodeView,
-  },
-  {
-    path: "/repertoire",
-    name: "repertoire",
-    component: RepertoireView,
-  },
-  {
-    path: "/upload",
-    name: "upload",
-    component: UploadView,
-  },
-];
-
-const router = createRouter({
-  history: createWebHistory(process.env.BASE_URL),
-  routes,
-});
-
-export default router;
+<template>
+  <div class="upload">Upload</div>
+</template>

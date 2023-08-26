@@ -233,7 +233,6 @@ export default {
         transformOrigin: "100% 100%",
         zIndex: this.nextMove ? 3 : 0,
         boxShadow: "0px 0px 5px 5px #888888",
-        backgroundColor: "red",
       };
     },
     prevContainerLeftStyle() {
@@ -318,7 +317,7 @@ export default {
   },
   methods: {
     fetchData() {
-      const domain = `http://127.0.0.1:5000/repertoire?device=${
+      const domain = `http://127.0.0.1:5001/repertoire?device=${
         this.isMobile ? "mobile" : "desktop"
       }`;
       fetch(domain, { mode: "cors" })

@@ -26,6 +26,7 @@ Copyright (C) 2023 musicnbrain.org
     @mousemove="flipMove($event)"
     @mouseup="flipEnd()"
   >
+    <!-- 2 pages for current contents -->
     <div
       class="curr-content-left"
       v-bind:style="currContentLeftStyle"
@@ -36,6 +37,7 @@ Copyright (C) 2023 musicnbrain.org
       v-bind:style="currContentRightStyle"
       v-html="pages[isMobile ? page : (page + 1) % pages.length]"
     ></div>
+    <!-- wrapper for next 2 pages -->
     <div class="next-container-left" v-bind:style="nextContainerLeftStyle">
       <div
         class="next-content-left"
@@ -54,6 +56,7 @@ Copyright (C) 2023 musicnbrain.org
         "
       ></div>
     </div>
+    <!-- wrapper for prev 2 pages -->
     <div class="prev-container-left" v-bind:style="prevContainerLeftStyle">
       <div
         class="prev-content-left"
@@ -86,11 +89,14 @@ export default {
       isMobile: false,
       pages: [],
       page: 0,
+      // margin size
       margin: 0.05,
+      // hot corner box size
       box: 0.3,
       height: 0,
       width: 0,
       diagonal: 0,
+      // control params for flipping to next page
       nextX: 0,
       nextY: 0,
       nextDegree: 0,
@@ -100,6 +106,7 @@ export default {
       nextContentRight: "",
       nextContainerLeft: "",
       nextContainerRight: "",
+      // control params for flipping to prev page
       prevX: 0,
       prevY: 0,
       prevDegree: 0,
@@ -312,7 +319,9 @@ export default {
     },
   },
   created() {
+    // check device type
     this.isMobile = "ontouchstart" in document.documentElement;
+    // fetch data
     this.fetchData();
   },
   methods: {
@@ -325,6 +334,7 @@ export default {
         .then((data) => this.pages.push(...data));
     },
     nextUpdate(that, x0, y0) {
+      // update params for flipping to next page
       let x1 = (1 - that.margin) * that.width;
       let y1 = (1 - that.margin) * that.height;
       if (x0 === x1) x0 = x1 - 1;
@@ -338,6 +348,7 @@ export default {
       that.nextContainer = (y - y1) * Math.tan(alpha);
     },
     nextFlip(that) {
+      // animate flipping to next page
       that.busy = true;
       let alpha = (that.nextDegree * Math.PI) / 180;
       let newNextX =
@@ -394,6 +405,7 @@ export default {
       };
     },
     nextSpin(that) {
+      // animate spinning to next page
       that.busy = true;
       let newNextX =
         -(that.isMobile ? 1 - 2 * that.margin : 0.5 - that.margin) * that.width;
@@ -451,6 +463,7 @@ export default {
       };
     },
     prevUpdate(that, x0, y0) {
+      // update params for flipping to prev page
       let x1 = that.margin * that.width;
       let y1 = (1 - that.margin) * that.height;
       if (x0 === x1) x0 = x1 + 1;
@@ -464,6 +477,7 @@ export default {
       that.prevContainer = (y1 - y) * Math.tan(alpha);
     },
     prevFlip(that) {
+      // animate flipping to prev page
       that.busy = true;
       let alpha = (that.prevDegree * Math.PI) / 180;
       let newPrevX =
@@ -520,6 +534,7 @@ export default {
       };
     },
     prevSpin(that) {
+      // animate spinning to prev page
       that.busy = true;
       let newPrevX =
         (that.isMobile ? 1 - 2 * that.margin : 0.5 - that.margin) * that.width;
@@ -579,6 +594,7 @@ export default {
       };
     },
     flipStart(event) {
+      // avoid conflict
       if (this.busy || this.nextMove || this.prevMove) return;
       let x = this.isMobile ? event.touches : event.clientX;
       let y = this.isMobile ? event.touches : event.clientY;
@@ -587,12 +603,14 @@ export default {
         x = x[0].clientX;
         y = y[0].clientY;
       }
+      // location in bottom right hot corner
       if (
         x <= (1 - this.margin) * this.width &&
         x >= (1 - this.margin - this.box) * this.width &&
         y <= (1 - this.margin) * this.height &&
         y >= (1 - this.margin - this.box) * this.height
       ) {
+        // get references to components
         this.nextContainerLeft = document.querySelector(".next-container-left");
         this.nextContentLeft = document.querySelector(".next-content-left");
         this.nextContainerRight = document.querySelector(
@@ -603,12 +621,14 @@ export default {
         this.nextUpdate(this, x, y);
         return;
       }
+      // location in bottom left hot corner
       if (
         x <= (this.margin + this.box) * this.width &&
         x >= this.margin * this.width &&
         y <= (1 - this.margin) * this.height &&
         y >= (1 - this.margin - this.box) * this.height
       ) {
+        // get references to components
         this.prevContainerLeft = document.querySelector(".prev-container-left");
         this.prevContentLeft = document.querySelector(".prev-content-left");
         this.prevContainerRight = document.querySelector(
@@ -621,6 +641,7 @@ export default {
       }
     },
     flipMove(event) {
+      // avoid conflict
       if (this.busy) return;
       let x = this.isMobile ? event.touches : event.clientX;
       let y = this.isMobile ? event.touches : event.clientY;
@@ -630,7 +651,7 @@ export default {
         y = y[0].clientY;
       }
       if (this.nextMove) {
-        // out of window
+        // location out of window
         if (
           x > (1 - this.margin) * this.width ||
           x < (this.isMobile ? this.margin : 0.5) * this.width ||
@@ -652,7 +673,7 @@ export default {
         return;
       }
       if (this.prevMove) {
-        // out of window
+        // location out of window
         if (
           x > (this.isMobile ? 1 - this.margin : 0.5) * this.width ||
           x < this.margin * this.width ||
@@ -675,6 +696,7 @@ export default {
       }
     },
     flipEnd() {
+      // avoid conflict
       if (this.busy) return;
       if (this.nextMove) {
         this.nextFlip(this);

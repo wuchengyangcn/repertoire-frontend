@@ -38,7 +38,7 @@ export default {
   },
   methods: {
     readHtmlFiles() {
-      const domain = `http://127.0.0.1:5000/repertoire?device=${this.device}`;
+      const domain = `http://3.17.80.6:5001/repertoire?device=${this.device}`;
       fetch(domain)
         .then((data) => data.json())
         .then((data) => this.html_code.push(...data));

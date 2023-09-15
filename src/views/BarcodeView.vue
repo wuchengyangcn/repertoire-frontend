@@ -17,7 +17,7 @@ Copyright (C) 2023 musicnbrain.org
 
 <template>
   <div class="barcode">
-    <router-link to="/repertoire">
+    <router-link :to="'/repertoire/' + this.barcodeId">
       <qrcode-vue v-bind:value="url" v-bind:size="size" />
     </router-link>
   </div>
@@ -30,10 +30,11 @@ export default {
   data() {
     return {
       name: "BarcodeView",
-      url: "http://3.17.80.6:8080/repertoire",
+      url: `http://3.17.80.6:8080/repertoire/${this.barcodeId}`,
       size: Math.min(window.innerWidth, window.innerHeight) * 0.9,
     };
   },
+  props: ["barcodeId"],
   components: {
     QrcodeVue,
   },

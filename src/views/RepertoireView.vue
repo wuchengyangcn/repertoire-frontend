@@ -16,7 +16,7 @@ Copyright (C) 2023 musicnbrain.org
 -->
 
 <template>
-  <Repertoire />
+  <Repertoire v-bind:repertoireId="repertoireId" />
 </template>
 
 <script>
@@ -24,6 +24,7 @@ import Repertoire from "@/components/FlipRepertoire.vue";
 
 export default {
   name: "RepertoireView",
+  props: ["repertoireId"],
   components: {
     Repertoire,
   },

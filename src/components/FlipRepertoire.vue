@@ -118,6 +118,7 @@ export default {
       prevContainerRight: "",
     };
   },
+  props: ["repertoireId"],
   computed: {
     repertoireStyle() {
       return {
@@ -328,7 +329,7 @@ export default {
     fetchData() {
       const domain = `http://3.17.80.6:5001/repertoire?device=${
         this.isMobile ? "mobile" : "desktop"
-      }`;
+      }&id=${this.repertoireId}`;
       fetch(domain, { mode: "cors" })
         .then((response) => response.json())
         .then((data) => this.pages.push(...data));

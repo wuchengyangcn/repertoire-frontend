@@ -45,4 +45,9 @@ const router = createRouter({
   routes,
 });
 
+router.beforeEach((from, to, next) => {
+  document.title = "MusicNBrain";
+  next();
+});
+
 export default router;

@@ -30,7 +30,7 @@ export default {
   data() {
     return {
       name: "BarcodeView",
-      url: `http://3.17.80.6:8080/repertoire/${this.barcodeId}`,
+      url: `http://3.17.80.6/repertoire/${this.barcodeId}`,
       size: Math.min(window.innerWidth, window.innerHeight) * 0.9,
     };
   },

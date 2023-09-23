@@ -22,6 +22,14 @@ import UploadView from "@/views/UploadView.vue";
 
 const routes = [
   {
+    path: "/",
+    name: "default",
+    component: BarcodeView,
+    props: {
+      barcodeId: "1",
+    },
+  },
+  {
     path: "/barcode/:barcodeId",
     name: "barcode",
     component: BarcodeView,

@@ -26,7 +26,7 @@ const routes = [
     name: "default",
     component: BarcodeView,
     props: {
-      barcodeId: "1",
+      barcodeId: "-1",
     },
   },
   {

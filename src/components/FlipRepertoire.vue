@@ -320,17 +320,28 @@ export default {
     },
   },
   created() {
-    // check device type
-    this.isMobile = "ontouchstart" in document.documentElement;
-    // fetch data
-    this.fetchData();
+    this.initialize();
   },
   methods: {
-    fetchData() {
-      const domain = `http://3.17.80.6:5001/repertoire?device=${
-        this.isMobile ? "mobile" : "desktop"
+    initialize() {
+      this.isMobile = "ontouchstart" in document.documentElement;
+      this.width = window.innerWidth;
+      this.height = window.innerHeight;
+      if (this.width === 1170 && this.height === 2532) {
+        this.model = "ip14";
+      } else {
+        this.model = "mobile";
+      }
+      this.diagonal = Math.sqrt(
+        (this.isMobile ? 1 : 0.25) * this.width * this.width +
+          this.height * this.height
+      );
+      const remote = "3.17.80.6:5001";
+      // const local = "localhost:5001";
+      const url = `http://${local}/repertoire?device=${
+        this.isMobile ? this.model : "desktop"
       }&id=${this.repertoireId}`;
-      fetch(domain, { mode: "cors" })
+      fetch(url, { mode: "cors" })
         .then((response) => response.json())
         .then((data) => this.pages.push(...data));
     },
@@ -708,14 +719,6 @@ export default {
         return;
       }
     },
-  },
-  mounted() {
-    this.width = window.innerWidth;
-    this.height = window.innerHeight;
-    this.diagonal = Math.sqrt(
-      (this.isMobile ? 1 : 0.25) * this.width * this.width +
-        this.height * this.height
-    );
   },
 };
 </script>

@@ -338,7 +338,7 @@ export default {
       );
       const remote = "3.17.80.6:5001";
       // const local = "localhost:5001";
-      const url = `http://${local}/repertoire?device=${
+      const url = `http://${remote}/repertoire?device=${
         this.isMobile ? this.model : "desktop"
       }&id=${this.repertoireId}`;
       fetch(url, { mode: "cors" })

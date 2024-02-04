@@ -327,8 +327,12 @@ export default {
       this.isMobile = "ontouchstart" in document.documentElement;
       this.width = window.innerWidth;
       this.height = window.innerHeight;
-      if (this.width === 1170 && this.height === 2532) {
+      if (this.height === 2532 && this.width === 1170) {
         this.model = "ip14";
+      } else if (this.height === 2556 && this.width === 1179) {
+        this.model = "ip14pro";
+      } else if (this.height === 2796 && this.width === 1290) {
+        this.model = "ip14promax";
       } else {
         this.model = "mobile";
       }
@@ -336,9 +340,9 @@ export default {
         (this.isMobile ? 1 : 0.25) * this.width * this.width +
           this.height * this.height
       );
-      const remote = "3.17.80.6:5001";
-      // const local = "localhost:5001";
-      const url = `http://${remote}/repertoire?device=${
+      // const remote = "3.17.80.6:5001";
+      const local = "localhost:5001";
+      const url = `http://${local}/repertoire?device=${
         this.isMobile ? this.model : "desktop"
       }&id=${this.repertoireId}`;
       fetch(url, { mode: "cors" })

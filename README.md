@@ -42,6 +42,18 @@ docker build -t musicnbrain/repertoire-frontend .
 docker run -d -p 8080:8080 --name repertoire-frontend musicnbrain/repertoire-frontend
 ```
 
+### Deploy
+
+```
+./build.sh
+```
+
+### CI/CD
+
+```
+echo "0 * * * * ~/repertoire-frontend/sync.sh" | crontab -
+```
+
 ### Customize configuration
 
 See [Configuration Reference](https://cli.vuejs.org/config/).

@@ -341,9 +341,9 @@ export default {
         (this.isMobile ? 1 : 0.25) * this.width * this.width +
           this.height * this.height
       );
-      const origin = "3.17.80.6:5001";
-      // const origin = "localhost:5001";
-      const url = `http://${origin}/repertoire?device=${
+      const proxy = "3.17.80.6:5001";
+      // const proxy = "localhost:5001";
+      const url = `http://${proxy}/repertoire?device=${
         this.isMobile ? this.model : "desktop"
       }&id=${this.repertoireId}`;
       // request contents

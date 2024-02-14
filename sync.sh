@@ -14,6 +14,7 @@ if [ $sync == 1 ]; then
   sudo docker rmi $(sudo docker images node -q)
 
   echo "build docker"
+  git pull
   cd ~/repertoire-frontend
   ./build.sh
 fi

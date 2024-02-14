@@ -51,7 +51,7 @@ docker run -d -p 8080:8080 --name repertoire-frontend musicnbrain/repertoire-fro
 ### CI/CD
 
 ```
-echo "0 * * * * ~/repertoire-frontend/sync.sh" | crontab -
+{ crontab -l; echo "0 * * * * ~/repertoire-frontend/sync.sh"; } | crontab -
 ```
 
 ### Customize configuration
